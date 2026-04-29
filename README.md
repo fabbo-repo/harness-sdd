@@ -30,16 +30,40 @@ python3 -m src.cli add "comprar pan" --body "y leche"
 python3 -m src.cli list
 ```
 
-## Demo del patrón Líder-Trabajador
+## Probarlo tú mismo con Claude Code
 
-```bash
-python3 -m scripts.demo_orchestration
-```
+Si te descargas el repo y abres Claude Code en la raíz, ya estás dentro del
+arnés: `CLAUDE.md` fuerza al modelo a actuar como `leader` (orquesta, no
+edita código).
 
-Simula al agente líder lanzando 3 subagentes en paralelo. Cada subagente
-explora un módulo de `src/`, escribe su informe en `progress/explore_*.md`
-y devuelve al líder **solo una referencia ligera** (ruta + tamaño). El
-contenido nunca viaja por chat — esa es la regla anti-teléfono-descompuesto.
+Receta rápida:
+
+1. `./init.sh` — debe terminar verde.
+2. Abre `feature_list.json` y deja al menos una feature con `status: "pending"`.
+   Si todas están en `done`, añade una nueva al final del array o cambia el
+   estado de una existente para reabrirla.
+3. Lanza Claude Code en la raíz del repo: `claude`.
+4. Pídele literalmente: **«implementa la siguiente feature pendiente»**.
+
+Lo que verás en chat:
+
+- El **leader** anuncia el plan, lanza un `implementer` y luego un `reviewer`.
+- Por chat **no pasa código** — solo referencias del tipo
+  `done -> progress/impl_<feature>.md`. Esa es la regla anti-teléfono-descompuesto.
+
+Dónde queda la traza de cada subagente (esto es la "visualización" persistente):
+
+| Archivo                          | Quién lo escribe | Qué contiene                                        |
+|----------------------------------|------------------|-----------------------------------------------------|
+| `progress/current.md`            | leader           | Plan vivo de la sesión                              |
+| `progress/impl_<feature>.md`     | implementer      | Archivos tocados + output de los tests              |
+| `progress/review_<feature>.md`   | reviewer         | Checklist contra `docs/` y `CHECKPOINTS.md`         |
+| `feature_list.json`              | implementer      | `pending` → `in_progress` → `done`                  |
+| `progress/history.md`            | leader           | Resumen append-only al cerrar la sesión             |
+
+Abre `progress/` en tu editor mientras Claude trabaja: cada informe aparece
+en cuanto el subagente termina. Así puedes auditar paso a paso quién decidió
+qué — el contenido no circula por chat, vive en disco y queda versionado.
 
 ## Estructura
 
