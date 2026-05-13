@@ -9,14 +9,12 @@
 
 ## Plan
 
-_Describe en 3-5 bullets qué vas a hacer antes de tocar código._
+_—_
 
 ## Bitácora
 
-_Anota aquí cada paso significativo: archivos creados, decisiones, bloqueos._
-
-- ...
+_—_
 
 ## Próximo paso
 
-_Si la sesión se interrumpe, lo primero que debe hacer la siguiente sesión._
+_—_

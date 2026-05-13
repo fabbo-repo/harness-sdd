@@ -6,6 +6,7 @@ import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 from src import cli, storage
@@ -150,6 +151,80 @@ class TestCli(unittest.TestCase):
         notes = storage.load(self.path)
         self.assertEqual(notes[0]["title"], "uno")
         self.assertEqual(notes[0]["body"], "a")
+
+    def _add_with_created_at(self, title: str, body: str, created_at: str) -> None:
+        existing = storage.load(self.path)
+        next_id = max((n["id"] for n in existing), default=0) + 1
+        existing.append({
+            "id": next_id,
+            "title": title,
+            "body": body,
+            "created_at": created_at,
+        })
+        storage.save(existing, self.path)
+
+    def test_recent_default_limit_orders_by_created_at_desc(self) -> None:
+        base = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+        for i in range(7):
+            ts = (base + timedelta(minutes=i)).isoformat(timespec="seconds")
+            self._add_with_created_at(f"nota-{i}", f"body-{i}", ts)
+        code, out, _ = self._run(["recent"])
+        self.assertEqual(code, 0)
+        lines = out.strip().splitlines()
+        self.assertEqual(len(lines), 5)
+        timestamps = [line.split("\t")[1] for line in lines]
+        self.assertEqual(timestamps, sorted(timestamps, reverse=True))
+        titles = [line.split("\t")[2] for line in lines]
+        self.assertEqual(titles, ["nota-6", "nota-5", "nota-4", "nota-3", "nota-2"])
+
+    def test_recent_custom_limit(self) -> None:
+        base = datetime(2026, 2, 1, 9, 0, 0, tzinfo=timezone.utc)
+        for i in range(6):
+            ts = (base + timedelta(minutes=i)).isoformat(timespec="seconds")
+            self._add_with_created_at(f"titulo-{i}", f"body-{i}", ts)
+        code, out, _ = self._run(["recent", "--limit", "3"])
+        self.assertEqual(code, 0)
+        lines = out.strip().splitlines()
+        self.assertEqual(len(lines), 3)
+        for line in lines:
+            parts = line.split("\t")
+            self.assertEqual(len(parts), 3)
+            self.assertRegex(parts[0], r"^\d+$")
+            self.assertRegex(parts[1], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
+
+    def test_recent_empty_outputs_nothing(self) -> None:
+        code, out, err = self._run(["recent"])
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "")
+        self.assertEqual(err, "")
+
+    def test_recent_invalid_limit_zero(self) -> None:
+        self._run(["add", "uno", "--body", "a"])
+        before = storage.load(self.path)
+        with open(self.path, "rb") as f:
+            before_bytes = f.read()
+        code, out, err = self._run(["recent", "--limit", "0"])
+        self.assertNotEqual(code, 0)
+        self.assertEqual(out, "")
+        self.assertNotEqual(err, "")
+        after = storage.load(self.path)
+        self.assertEqual(before, after)
+        with open(self.path, "rb") as f:
+            self.assertEqual(before_bytes, f.read())
+
+    def test_recent_invalid_limit_negative(self) -> None:
+        self._run(["add", "uno", "--body", "a"])
+        before = storage.load(self.path)
+        with open(self.path, "rb") as f:
+            before_bytes = f.read()
+        code, out, err = self._run(["recent", "--limit", "-3"])
+        self.assertNotEqual(code, 0)
+        self.assertEqual(out, "")
+        self.assertNotEqual(err, "")
+        after = storage.load(self.path)
+        self.assertEqual(before, after)
+        with open(self.path, "rb") as f:
+            self.assertEqual(before_bytes, f.read())
 
 
 if __name__ == "__main__":

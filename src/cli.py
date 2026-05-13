@@ -56,6 +56,18 @@ def cmd_search(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_recent(args: argparse.Namespace) -> int:
+    if args.limit <= 0:
+        raise NoteError("--limit debe ser un entero positivo")
+    notes = storage.load()
+    if not notes:
+        return 0
+    ordered = sorted(notes, key=lambda n: n["created_at"], reverse=True)
+    for n in ordered[: args.limit]:
+        print(f"{n['id']}\t{n['created_at']}\t{n['title']}")
+    return 0
+
+
 def cmd_edit(args: argparse.Namespace) -> int:
     if args.title is None and args.body is None:
         raise NoteError("debes pasar --title y/o --body")
@@ -104,6 +116,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_edit.add_argument("--title", default=None)
     p_edit.add_argument("--body", default=None)
     p_edit.set_defaults(func=cmd_edit)
+
+    p_recent = sub.add_parser("recent", help="Listar las N notas más recientes.")
+    p_recent.add_argument("--limit", type=int, default=5)
+    p_recent.set_defaults(func=cmd_recent)
 
     return parser
 
