@@ -44,6 +44,20 @@ NOTES_FILE=/tmp/notes_demo.json python3 -m src.cli list
 rm /tmp/notes_demo.json
 ```
 
+### Nivel 4 — Trazabilidad de requirements (obligatorio para features con `"sdd": true`)
+
+Cada `R<n>` de `specs/<name>/requirements.md` debe poder mapearse a al
+menos un test concreto en `tests/`. El reviewer rechaza si falta cobertura.
+
+El implementer documenta el mapa en `progress/impl_<name>.md`:
+
+```markdown
+## Trazabilidad
+- R1 → `test_recent_default_limit`
+- R2 → `test_recent_invalid_limit`
+- R3 → `test_recent_custom_limit`
+```
+
 ## Anti-patrones (no hacer)
 
 - ❌ "He añadido el comando, debería funcionar." → falta test ejecutable.

@@ -48,24 +48,41 @@ for f in AGENTS.md feature_list.json progress/current.md docs/architecture.md do
 done
 
 echo ""
-echo "── 3. Validando feature_list.json ──────────────────────"
+echo "── 3. Validando feature_list.json y specs ─────────────"
 
 python3 - <<'PY'
-import json, sys
+import json, os, sys
 try:
     data = json.load(open("feature_list.json"))
-    valid = {"pending", "in_progress", "done", "blocked"}
+    valid = {"pending", "spec_ready", "in_progress", "done", "blocked"}
     in_progress = [f for f in data["features"] if f["status"] == "in_progress"]
     if len(in_progress) > 1:
         print(f"[FAIL]  Hay {len(in_progress)} features en in_progress (máximo 1)")
         sys.exit(1)
+    requires_spec = {"spec_ready", "in_progress", "done"}
+    spec_errors = []
     for f in data["features"]:
         if f["status"] not in valid:
             print(f"[FAIL]  Estado inválido en feature {f['id']}: {f['status']}")
             sys.exit(1)
+        if f.get("sdd") and f["status"] in requires_spec:
+            spec_dir = os.path.join("specs", f["name"])
+            for fname in ("requirements.md", "design.md", "tasks.md"):
+                if not os.path.isfile(os.path.join(spec_dir, fname)):
+                    spec_errors.append(
+                        f"feature {f['id']} ({f['name']}) en {f['status']} "
+                        f"sin {spec_dir}/{fname}"
+                    )
+    if spec_errors:
+        for e in spec_errors:
+            print(f"[FAIL]  {e}")
+        sys.exit(1)
     print(f"[OK]    feature_list.json válido ({len(data['features'])} features)")
+    print(f"[OK]    Specs presentes para features sdd con estado no-pending")
+except SystemExit:
+    raise
 except Exception as e:
-    print(f"[FAIL]  feature_list.json inválido: {e}")
+    print(f"[FAIL]  feature_list.json o specs inválidos: {e}")
     sys.exit(1)
 PY
 

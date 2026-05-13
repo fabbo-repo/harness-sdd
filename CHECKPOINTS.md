@@ -40,8 +40,19 @@
 - [ ] `progress/history.md` tiene una entrada por la última sesión.
 - [ ] La última feature trabajada está reflejada en su estado correcto.
 
+## C6 — Spec Driven Development
+
+- [ ] Toda feature con `"sdd": true` en estado `spec_ready`, `in_progress`
+      o `done` tiene su carpeta `specs/<name>/` con los 3 archivos:
+      `requirements.md`, `design.md`, `tasks.md`.
+- [ ] `requirements.md` usa EARS estricto (ver `docs/specs.md`).
+- [ ] Toda feature `done` con `"sdd": true` tiene todas sus tasks marcadas
+      `[x]` en `tasks.md`.
+- [ ] Cada `R<n>` de `requirements.md` está cubierto por al menos un test
+      concreto en `tests/`.
+
 ---
 
 **Cómo usar este archivo:** un agente revisor (`.claude/agents/reviewer.md`)
 recorre cada checkbox, marca `[x]` o `[ ]`, y rechaza el cierre de sesión
-si quedan boxes vacíos en C1-C5.
+si quedan boxes vacíos en C1-C6.
