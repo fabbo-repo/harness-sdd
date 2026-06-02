@@ -87,6 +87,12 @@ def cmd_edit(args: argparse.Namespace) -> int:
     raise NoteNotFound(f"no existe la nota con id={args.id}")
 
 
+def cmd_count(args: argparse.Namespace) -> int:
+    notes = storage.load()
+    print(len(notes))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="notes", description="CLI minimalista de notas.")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -120,6 +126,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_recent = sub.add_parser("recent", help="Listar las N notas más recientes.")
     p_recent.add_argument("--limit", type=int, default=5)
     p_recent.set_defaults(func=cmd_recent)
+
+    p_count = sub.add_parser("count", help="Contar las notas almacenadas.")
+    p_count.set_defaults(func=cmd_count)
 
     return parser
 

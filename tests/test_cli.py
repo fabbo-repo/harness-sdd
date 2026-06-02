@@ -226,6 +226,55 @@ class TestCli(unittest.TestCase):
         with open(self.path, "rb") as f:
             self.assertEqual(before_bytes, f.read())
 
+    def test_count_empty_store_prints_zero(self) -> None:
+        code, out, err = self._run(["count"])
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "0\n")
+        self.assertEqual(err, "")
+
+    def test_count_missing_store_prints_zero(self) -> None:
+        self.assertFalse(os.path.exists(self.path))
+        code, out, _ = self._run(["count"])
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "0\n")
+
+    def test_count_single_note_prints_one(self) -> None:
+        self._run(["add", "uno", "--body", "a"])
+        code, out, _ = self._run(["count"])
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "1\n")
+
+    def test_count_three_notes_prints_three(self) -> None:
+        self._run(["add", "uno", "--body", "a"])
+        self._run(["add", "dos", "--body", "b"])
+        self._run(["add", "tres", "--body", "c"])
+        code, out, _ = self._run(["count"])
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "3\n")
+
+    def test_count_output_is_bare_integer_without_text(self) -> None:
+        self._run(["add", "uno", "--body", "a"])
+        self._run(["add", "dos", "--body", "b"])
+        _, out, _ = self._run(["count"])
+        self.assertEqual(out.strip(), "2")
+        self.assertNotIn("Total", out)
+
+    def test_count_does_not_mutate_store(self) -> None:
+        self._run(["add", "uno", "--body", "a"])
+        self._run(["add", "dos", "--body", "b"])
+        with open(self.path, "rb") as f:
+            before_bytes = f.read()
+        code, _, _ = self._run(["count"])
+        self.assertEqual(code, 0)
+        with open(self.path, "rb") as f:
+            self.assertEqual(before_bytes, f.read())
+
+    def test_count_does_not_create_store_when_missing(self) -> None:
+        self.assertFalse(os.path.exists(self.path))
+        code, _, _ = self._run(["count"])
+        self.assertEqual(code, 0)
+        self.assertFalse(os.path.exists(self.path))
+
 
 if __name__ == "__main__":
     unittest.main()

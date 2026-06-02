@@ -58,3 +58,18 @@
 - **Cambios:** `src/cli.py` (`cmd_recent` + subparser con `--limit`), `tests/test_cli.py` (5 tests nuevos: orden por defecto, límite custom, archivo vacío, límite 0, límite negativo; helper `_add_with_created_at`).
 - **Verificación:** `./init.sh` verde, 27 tests pasan. Reviewer APPROVED (`progress/review_cli_recent.md`); trazabilidad en `progress/impl_cli_recent.md`.
 - **Cierre:** feature 7 marcada `done`. Próximo: feature 8 (cli_count).
+
+## 2026-06-02 — Feature 8: cli_count
+- **Agente:** Claude Opus 4.8 (tdd_craftsman), rama `uncle-bob-harness`.
+- **Recorrido:** Gherkin (`features/cli_count.feature`, @s1..@s7) → TDD estricto Rojo-Verde-Refactor (7 ciclos, un test a la vez; solo los ciclos 1 y 3 introdujeron producción) → judge **APPROVED** (`progress/judge_cli_count.md`) → mutación **100%** sobre líneas de la feature (`progress/mutation_cli_count.md`, 2/2 mutantes muertos).
+- **Cambios:** `src/cli.py` (`cmd_count` + subparser `count`), `tests/test_cli.py` (7 tests, uno por escenario), `features/cli_count.feature` (contrato @s1..@s7).
+- **Trazabilidad @s → test:**
+  - @s1 (almacén vacío → "0")              → `test_count_empty_store_prints_zero`
+  - @s2 (almacén inexistente → "0")        → `test_count_missing_store_prints_zero`
+  - @s3 (una nota → "1")                   → `test_count_single_note_prints_one`
+  - @s4 (tres notas → "3" exacto)          → `test_count_three_notes_prints_three`
+  - @s5 (entero pelado, sin "Total")       → `test_count_output_is_bare_integer_without_text`
+  - @s6 (no muta el archivo, byte a byte)  → `test_count_does_not_mutate_store`
+  - @s7 (idempotente, archivo sigue ausente) → `test_count_does_not_create_store_when_missing`
+- **Verificación:** `./init.sh` verde, 34 tests pasan.
+- **Cierre:** feature 8 marcada `done`. Próximo: feature 9 (cli_export).

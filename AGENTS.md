@@ -1,8 +1,11 @@
 # AGENTS.md — Mapa de navegación para agentes de IA
 
-> Este archivo es el **punto de entrada** para cualquier agente que trabaje en este
-> repositorio. NO es una biblia de reglas: es un **mapa**. Lee solo lo que
-> necesites cuando lo necesites (divulgación progresiva).
+> Punto de entrada para cualquier agente que trabaje en este repositorio.
+> NO es una biblia de reglas: es un **mapa**. Lee solo lo que necesites
+> cuando lo necesites (divulgación progresiva).
+>
+> **Rama `uncle-bob-harness`** — flujo estilo Robert C. Martin:
+> conversación → Gherkin → TDD → review → mutación. Ver `docs/workflow.md`.
 
 ---
 
@@ -11,9 +14,9 @@
 1. Ejecuta `./init.sh` y verifica que termina sin errores. Si falla, **para**
    y resuelve el entorno antes de tocar código.
 2. Lee `progress/current.md` para entender en qué estado quedó la última sesión.
-3. Lee `feature_list.json`. Toda feature nueva (`"sdd": true`) pasa por
-   **Spec Driven Development** — ver `docs/specs.md` y §4 de este archivo.
-4. Lee `docs/specs.md` antes de tocar cualquier spec o feature `sdd: true`.
+3. Lee `feature_list.json`. Toda feature nueva (`"sdd": true`) recorre el
+   pipeline de cinco fases — ver `docs/workflow.md` y §4.
+4. Lee `docs/workflow.md` antes de coordinar nada.
 
 ## 2. Mapa del repositorio
 
@@ -22,45 +25,59 @@
 | `feature_list.json`          | Lista de tareas con estado (`pending` / `spec_ready` / `in_progress` / `done` / `blocked`) | Siempre, al empezar |
 | `progress/current.md`        | Estado de la sesión actual                                                  | Siempre, al empezar |
 | `progress/history.md`        | Bitácora append-only de sesiones anteriores                                 | Si necesitas contexto histórico |
-| `specs/<feature>/`           | `requirements.md` + `design.md` + `tasks.md` (Kiro-style)                   | Antes de implementar cualquier feature con `"sdd": true` |
+| `project-spec.md`            | Spec conversada: propósito, contrato y decisiones por feature               | Antes de destilar Gherkin o implementar |
+| `features/<name>.feature`    | Escenarios Gherkin (el contrato ejecutable que el humano aprueba)           | Antes de empezar el ciclo TDD |
+| `docs/workflow.md`           | El pipeline completo y los insights de cada fase                            | Antes de coordinar |
+| `docs/tdd.md`                | Las Tres Leyes del TDD; el ciclo Rojo-Verde-Refactor                        | Antes de escribir código |
+| `docs/gherkin.md`            | Cómo escribir `.feature`; de Gherkin a test                                 | Antes de redactar/leer escenarios |
+| `docs/mutation-testing.md`   | Por qué y cómo; umbral; uso de `tools/mutate.py`                            | Antes de validar la suite |
 | `docs/architecture.md`       | Qué significa "hacer un buen trabajo" en este proyecto                      | Antes de implementar |
 | `docs/conventions.md`        | Reglas de estilo, nombres, estructura                                       | Antes de escribir código |
-| `docs/specs.md`              | Proceso SDD: EARS notation, los 3 archivos, puerta de aprobación humana     | Antes de redactar o leer un spec |
-| `docs/verification.md`       | Cómo verificar que tu trabajo funciona (incluye trazabilidad requirements)  | Antes de declarar una tarea como `done` |
+| `docs/verification.md`       | Cómo verificar que tu trabajo funciona                                      | Antes de declarar `done` |
 | `CHECKPOINTS.md`             | Criterios objetivos de "estado final correcto"                              | Para auto-evaluarte |
-| `.claude/agents/`            | Definiciones de subagentes (`leader`, `spec_author`, `implementer`, `reviewer`) | Si orquestas trabajo |
+| `tools/mutate.py`            | Mutador sin dependencias para la prueba de mutación                         | Fase de mutación |
+| `.claude/agents/`            | `craftsman_lead`, `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`, `mutation_tester` | Si orquestas trabajo |
 | `src/`                       | Código de la aplicación                                                     | Para implementar |
 | `tests/`                     | Tests automáticos                                                           | Para verificar |
 
 ## 3. Reglas duras (no negociables)
 
 - **Una sola feature a la vez.** No mezcles cambios de varias tareas en la misma sesión.
-- **No declares una tarea `done` sin pruebas verdes.** Ejecuta `./init.sh` y
-  asegúrate de que el bloque de tests pasa al 100%.
-- **No saltes la fase de spec.** Toda feature con `"sdd": true` debe pasar
-  por `spec_author` y obtener aprobación humana antes de tocar código.
-- **No saltes la puerta de aprobación humana.** El leader detiene el flujo
-  en `spec_ready` y espera.
-- **Documenta lo que haces** en `progress/current.md` mientras trabajas, no al final.
+- **No declares una tarea `done` sin pruebas verdes Y umbral de mutación
+  superado.** Ejecuta `./init.sh` y la prueba de mutación.
+- **No saltes la conversación de spec ni la destilación Gherkin.** Toda
+  feature con `"sdd": true` pasa por `spec_partner` y `gherkin_author`.
+- **No saltes la puerta de aprobación humana** sobre los `.feature`. El
+  `craftsman_lead` detiene el flujo en `spec_ready` y espera.
+- **TDD estricto: un test a la vez.** Nada de producción sin un test rojo
+  que la pida (`docs/tdd.md`).
+- **Documenta lo que haces** en `progress/current.md` mientras trabajas.
 - **Deja el repositorio limpio** antes de cerrar la sesión (ver §5).
 - **Si no sabes algo, busca en `docs/`** antes de inventarlo.
 
-## 4. Flujo de trabajo (SDD)
+## 4. Flujo de trabajo (pipeline)
 
 ```
-pending → [spec_author] → spec_ready → ⏸ HUMANO → in_progress → [implementer → reviewer] → done
+pending
+  → [spec_partner]   conversación → project-spec.md
+  → [gherkin_author] project-spec.md → features/<name>.feature   (status: spec_ready)
+  → ⏸ HUMANO APRUEBA los escenarios
+  → in_progress
+  → [tdd_craftsman]  Rojo → Verde → Refactor (un test a la vez)
+  → [judge]          review (el juego entero)
+  → [mutation_tester] mata mutantes; valida que los tests muerden
+  → done
 ```
 
-1. El leader detecta la primera feature `pending` con `"sdd": true`.
-2. El leader lanza `spec_author`, que crea
-   `specs/<name>/{requirements,design,tasks}.md` y marca el status como
-   `spec_ready`.
-3. **Pausa.** El humano lee el spec en `specs/<name>/` y aprueba (o pide cambios).
-4. Una vez aprobado, el leader cambia el status a `in_progress` y lanza `implementer`.
-5. El implementer ejecuta `tasks.md` una a una, marcándolas `[x]`.
-6. El reviewer verifica trazabilidad `R<n>` ↔ test y tasks completas;
-   aprueba o rechaza.
-7. Si aprueba, el implementer marca `done` y mueve el resumen a
+1. El `craftsman_lead` detecta la primera feature `pending` con `"sdd": true`.
+2. Lanza `spec_partner` (conversa y debate) → `project-spec.md`.
+3. Lanza `gherkin_author` → `features/<name>.feature`, status `spec_ready`.
+4. **Pausa.** El humano lee los escenarios y aprueba (o pide cambios).
+5. Aprobado → status `in_progress` y lanza `tdd_craftsman`.
+6. El `tdd_craftsman` recorre cada escenario `@s` con ciclos Rojo-Verde-Refactor.
+7. El `judge` revisa cobertura, disciplina TDD y calidad; aprueba o rechaza.
+8. El `mutation_tester` corre `tools/mutate.py`; exige el umbral.
+9. Si todo pasa, el `tdd_craftsman` marca `done` y mueve el resumen a
    `progress/history.md`.
 
 ## 5. Cierre de sesión (lifecycle)
@@ -68,10 +85,11 @@ pending → [spec_author] → spec_ready → ⏸ HUMANO → in_progress → [imp
 Antes de terminar:
 
 1. Ejecuta `./init.sh` — todo verde.
-2. Si la tarea está acabada: marca `status: "done"` en `feature_list.json`.
-3. Mueve el resumen de `progress/current.md` al final de `progress/history.md`.
-4. Vacía `progress/current.md` dejando solo la plantilla.
-5. No dejes archivos temporales, ni `print()` de debug, ni TODOs sin contexto.
+2. Corre la prueba de mutación sobre lo tocado — supera el umbral.
+3. Si la tarea está acabada: marca `status: "done"` en `feature_list.json`.
+4. Mueve el resumen de `progress/current.md` al final de `progress/history.md`.
+5. Vacía `progress/current.md` dejando solo la plantilla.
+6. No dejes archivos temporales, ni `print()` de debug, ni TODOs sin contexto.
 
 ## 6. Si te bloqueas
 
