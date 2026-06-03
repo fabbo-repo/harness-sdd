@@ -3,9 +3,13 @@ from __future__ import annotations
 
 import argparse
 import sys
+from datetime import datetime
 
 from src import storage
 from src.notes import Note, NoteError, NoteNotFound
+
+DATE_LENGTH = len("YYYY-MM-DD")
+DATE_FORMAT = "%Y-%m-%d"
 
 
 def cmd_add(args: argparse.Namespace) -> int:
@@ -87,6 +91,19 @@ def cmd_edit(args: argparse.Namespace) -> int:
     raise NoteNotFound(f"no existe la nota con id={args.id}")
 
 
+def cmd_since(args: argparse.Namespace) -> int:
+    try:
+        datetime.strptime(args.date, DATE_FORMAT)
+    except ValueError:
+        raise NoteError(f"fecha inválida: \"{args.date}\" (formato esperado YYYY-MM-DD)")
+    notes = storage.load()
+    matches = [n for n in notes if n["created_at"][:DATE_LENGTH] >= args.date]
+    ordered = sorted(matches, key=lambda n: n["created_at"], reverse=True)
+    for n in ordered:
+        print(f"{n['id']}\t{n['created_at']}\t{n['title']}")
+    return 0
+
+
 def cmd_count(args: argparse.Namespace) -> int:
     notes = storage.load()
     print(len(notes))
@@ -126,6 +143,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_recent = sub.add_parser("recent", help="Listar las N notas más recientes.")
     p_recent.add_argument("--limit", type=int, default=5)
     p_recent.set_defaults(func=cmd_recent)
+
+    p_since = sub.add_parser("since", help="Listar notas creadas en o después de una fecha.")
+    p_since.add_argument("date")
+    p_since.set_defaults(func=cmd_since)
 
     p_count = sub.add_parser("count", help="Contar las notas almacenadas.")
     p_count.set_defaults(func=cmd_count)

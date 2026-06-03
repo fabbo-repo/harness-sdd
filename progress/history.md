@@ -73,3 +73,21 @@
   - @s7 (idempotente, archivo sigue ausente) → `test_count_does_not_create_store_when_missing`
 - **Verificación:** `./init.sh` verde, 34 tests pasan.
 - **Cierre:** feature 8 marcada `done`. Próximo: feature 9 (cli_export).
+
+## 2026-06-02 — Feature 12: cli_since
+- **Agente:** Claude Opus 4.8 (craftsman_lead), rama `uncle-bob-harness`. Orquestó el pipeline completo: spec_partner → gherkin_author → ⏸ aprobación humana → tdd_craftsman → judge → mutation_tester.
+- **Conversación de spec:** debatidas y cerradas con el humano 2 decisiones — (1) validar fecha real con `strptime("%Y-%m-%d")` (rechaza formato inválido Y fecha imposible como `2026-13-40`); (2) comparación por fecha de calendario (primeros 10 chars de `created_at`), límite inclusivo `>=`. Registradas en `project-spec.md` (sección `since`).
+- **Recorrido:** Gherkin (`features/cli_since.feature`, @s1..@s9) → TDD estricto Rojo-Verde-Refactor (9 ciclos, un test a la vez; producción introducida en ciclos 1, 2, 3 y 5) → judge **APPROVED** (`progress/judge_cli_since.md`) → mutación **100%** sobre líneas de la feature (`progress/mutation_cli_since.md`; los 4 mutantes sobrevivientes del archivo están fuera de alcance, en `cmd_recent`/`build_parser`/`main`).
+- **Cambios:** `src/cli.py` (`cmd_since` + subparser `since`, constantes `DATE_LENGTH`/`DATE_FORMAT`, import `datetime`), `tests/test_cli.py` (9 tests nuevos), `features/cli_since.feature` (contrato @s1..@s9), `project-spec.md`.
+- **Trazabilidad @s → test:**
+  - @s1 (límite inclusivo exacto)       → `test_since_includes_note_created_on_exact_date`
+  - @s2 (anteriores fuera, posteriores) → `test_since_excludes_earlier_includes_later`
+  - @s3 (orden descendente)             → `test_since_orders_matches_by_created_at_desc`
+  - @s4 (formato de línea = list)       → `test_since_line_format_matches_list`
+  - @s5 (fecha con formato inválido)    → `test_since_invalid_date_format_is_error`
+  - @s6 (fecha imposible de calendario) → `test_since_impossible_calendar_date_is_error`
+  - @s7 (sin coincidencias → vacío)     → `test_since_no_matches_outputs_nothing`
+  - @s8 (almacén vacío → vacío)         → `test_since_empty_store_outputs_nothing`
+  - @s9 (no modifica el almacén)        → `test_since_does_not_mutate_store`
+- **Verificación:** `./init.sh` verde, 43 tests pasan.
+- **Cierre:** feature 12 marcada `done`. Próximo: feature 9 (cli_export).

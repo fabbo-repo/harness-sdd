@@ -64,6 +64,59 @@ Engineering, edición artesano), no complejidad de dominio.
 - **Decisión:** mismo formato que `list` para no inventar un segundo
   contrato de presentación.
 
+### `since` — filtrar por fecha  *(feature #12)*
+
+- **Propósito:** ver "lo que apunté desde el lunes" — las notas creadas en
+  una fecha de calendario dada o después de ella.
+- **Comportamiento:** recibe una fecha `YYYY-MM-DD`, la valida como fecha de
+  calendario real, y lista las notas cuya fecha de creación es igual o
+  posterior a la indicada, ordenadas de más reciente a más antigua.
+- **Contrato:**
+  - `python -m src.cli since 2026-05-01` → stdout: las notas con fecha de
+    creación `>= 2026-05-01`, una por línea, formato
+    `<id>\t<created_at>\t<title>` (idéntico a `list`/`recent`), orden por
+    `created_at` **descendente**; exit code 0.
+  - El argumento se parsea con `datetime.strptime(arg, "%Y-%m-%d")`. Si NO
+    es una fecha de calendario real y válida —ya sea por formato incorrecto
+    (`2026/05/01`, `mayo`) o por fecha imposible (`2026-13-40`,
+    `2026-02-30`)— → mensaje claro en **stderr**, exit code != 0.
+  - Comparación por **fecha de calendario, límite inclusivo**: se toma la
+    parte de fecha de `created_at` (sus primeros 10 caracteres / `.date()`)
+    y se incluye la nota si esa fecha es **>=** la fecha dada. Una nota
+    creada a las 23:00 del día exacto cuenta.
+  - Ninguna nota cumple el criterio → no imprime nada, exit code 0
+    (coherente con `list`/`recent`).
+  - Almacén vacío o inexistente → no imprime nada, exit code 0.
+  - El comando **no modifica** el archivo de notas (solo lectura).
+- **Casos límite:**
+  1. Límite inclusivo exacto: una nota creada justo en la fecha dada entra
+     en el resultado (incluso si su hora es 23:00).
+  2. Sin coincidencias: ninguna nota `>=` la fecha → stdout vacío, exit
+     code 0.
+  3. Fecha con formato inválido (`2026/05/01`, `mayo`) → stderr, exit code
+     != 0.
+  4. Fecha con formato correcto pero imposible (`2026-13-40`, `2026-02-30`)
+     → stderr, exit code != 0.
+  5. Archivo de notas vacío o inexistente → stdout vacío, exit code 0.
+  6. Idempotente: ejecutarlo no cambia el almacén.
+- **Decisiones:**
+  - *Validación con `strptime("%Y-%m-%d")`, rechazando fechas imposibles.*
+    Razón: el usuario merece un error claro ante `2026-13-40` o
+    `2026-02-30`, no un filtrado silencioso sobre una fecha absurda.
+    *Alternativa descartada:* validar solo el patrón regex `YYYY-MM-DD` —
+    más simple, pero deja pasar fechas de calendario imposibles sin avisar.
+  - *Comparación por fecha de calendario con límite inclusivo (`>=`).*
+    Razón: el modelo mental del usuario es "día", no "instante"; una nota
+    creada a las 23:00 del día indicado debe contar. Se compara la parte de
+    fecha de `created_at` contra la fecha dada. *Alternativa descartada:*
+    comparar instantes completos tomando la fecha como medianoche —
+    coherente a nivel de tipos, pero excluiría notas del propio día creadas
+    después de las 00:00, contradiciendo la intuición de "desde el lunes".
+  - *Mismo formato de salida y orden descendente que `recent`.* Razón: no
+    inventar un segundo contrato de presentación; `since` es un `list`
+    filtrado por fecha. Coherente con la decisión global de salida
+    componible.
+
 ### Comandos ya existentes (contrato resumido)
 
 `add`, `list`, `show`, `delete`, `search`, `edit` — ver `src/cli.py`. Se

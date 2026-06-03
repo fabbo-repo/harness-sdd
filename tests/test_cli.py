@@ -275,6 +275,83 @@ class TestCli(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertFalse(os.path.exists(self.path))
 
+    def test_since_includes_note_created_on_exact_date(self) -> None:
+        self._add_with_created_at("apunte", "x", "2026-05-01T23:00:00+00:00")
+        code, out, _ = self._run(["since", "2026-05-01"])
+        self.assertEqual(code, 0)
+        self.assertIn("apunte", out)
+
+    def test_since_excludes_earlier_includes_later(self) -> None:
+        self._add_with_created_at("vieja", "x", "2026-04-30T10:00:00+00:00")
+        self._add_with_created_at("nueva", "y", "2026-05-02T10:00:00+00:00")
+        code, out, _ = self._run(["since", "2026-05-01"])
+        self.assertEqual(code, 0)
+        self.assertIn("nueva", out)
+        self.assertNotIn("vieja", out)
+
+    def test_since_orders_matches_by_created_at_desc(self) -> None:
+        self._add_with_created_at("dia-uno", "x", "2026-05-01T10:00:00+00:00")
+        self._add_with_created_at("dia-tres", "y", "2026-05-03T10:00:00+00:00")
+        self._add_with_created_at("dia-dos", "z", "2026-05-02T10:00:00+00:00")
+        code, out, _ = self._run(["since", "2026-05-01"])
+        self.assertEqual(code, 0)
+        lines = out.strip().splitlines()
+        self.assertEqual(len(lines), 3)
+        titles = [line.split("\t")[2] for line in lines]
+        self.assertEqual(titles, ["dia-tres", "dia-dos", "dia-uno"])
+
+    def test_since_line_format_matches_list(self) -> None:
+        self._add_with_created_at("primera", "x", "2026-05-01T08:00:00+00:00")
+        self._add_with_created_at("segunda", "y", "2026-05-04T08:00:00+00:00")
+        code, out, _ = self._run(["since", "2026-05-01"])
+        self.assertEqual(code, 0)
+        lines = out.strip().splitlines()
+        self.assertEqual(len(lines), 2)
+        for line in lines:
+            parts = line.split("\t")
+            self.assertEqual(len(parts), 3)
+            self.assertRegex(parts[0], r"^\d+$")
+            self.assertRegex(parts[1], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
+        self.assertEqual(lines[0], "2\t2026-05-04T08:00:00+00:00\tsegunda")
+
+    def test_since_invalid_date_format_is_error(self) -> None:
+        self._add_with_created_at("una", "x", "2026-05-02T08:00:00+00:00")
+        code, out, err = self._run(["since", "2026/05/01"])
+        self.assertNotEqual(code, 0)
+        self.assertEqual(out, "")
+        self.assertIn("fecha", err.lower())
+
+    def test_since_impossible_calendar_date_is_error(self) -> None:
+        self._add_with_created_at("una", "x", "2026-05-02T08:00:00+00:00")
+        code, out, err = self._run(["since", "2026-13-40"])
+        self.assertNotEqual(code, 0)
+        self.assertEqual(out, "")
+        self.assertIn("fecha", err.lower())
+
+    def test_since_no_matches_outputs_nothing(self) -> None:
+        self._add_with_created_at("vieja", "x", "2026-04-30T08:00:00+00:00")
+        code, out, err = self._run(["since", "2026-05-01"])
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "")
+        self.assertEqual(err, "")
+
+    def test_since_empty_store_outputs_nothing(self) -> None:
+        self.assertFalse(os.path.exists(self.path))
+        code, out, err = self._run(["since", "2026-05-01"])
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "")
+        self.assertEqual(err, "")
+
+    def test_since_does_not_mutate_store(self) -> None:
+        self._add_with_created_at("uno", "a", "2026-05-01T08:00:00+00:00")
+        self._add_with_created_at("dos", "b", "2026-05-03T08:00:00+00:00")
+        with open(self.path, "rb") as f:
+            before_bytes = f.read()
+        code, _, _ = self._run(["since", "2026-05-01"])
+        self.assertEqual(code, 0)
+        with open(self.path, "rb") as f:
+            self.assertEqual(before_bytes, f.read())
+
 
 if __name__ == "__main__":
     unittest.main()
