@@ -1,6 +1,7 @@
 # Current session
 
-> This file is emptied when each session is closed and moved to `history.md`.
+> This file is emptied when each session is closed; the durable record lives in
+> the git history and the `progress/<phase>_<name>.md` reports.
 > While you work, **keep it updated in real time**, not at the end.
 
 - **Feature in progress:** _none_

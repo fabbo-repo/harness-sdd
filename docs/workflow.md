@@ -1,6 +1,6 @@
 # The Uncle Bob flow (Harness Engineering, craftsman edition)
 
-> This branch reorganizes the same `notes-cli` around the process that
+> This project organizes the `notes-cli` around the process that
 > Robert C. Martin describes in his thread: **converse the spec, distill it into
 > Gherkin scenarios, carve the code with strict TDD, prune with judgment and
 > validate with mutation testing**. The app code is trivial on

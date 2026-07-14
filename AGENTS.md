@@ -4,7 +4,7 @@
 > This is NOT a bible of rules: it is a **map**. Read only what you need
 > when you need it (progressive disclosure).
 >
-> **`uncle-bob-harness` branch** — Robert C. Martin-style flow:
+> **Robert C. Martin-style flow:**
 > conversation → Gherkin → TDD → review → mutation. See `docs/workflow.md`.
 
 ---
@@ -24,7 +24,6 @@
 |------------------------------|-----------------------------------------------------------------------------|---------------|
 | `feature_list.json`          | Task list with status (`pending` / `spec_ready` / `in_progress` / `done` / `blocked`) | Always, at the start |
 | `progress/current.md`        | State of the current session                                               | Always, at the start |
-| `progress/history.md`        | Append-only log of previous sessions                                        | If you need historical context |
 | `project-spec.md`            | Conversed spec: purpose, contract and decisions per feature                 | Before distilling Gherkin or implementing |
 | `features/<name>.feature`    | Gherkin scenarios (the executable contract the human approves)              | Before starting the TDD cycle |
 | `docs/workflow.md`           | The full pipeline and the insights of each phase                            | Before coordinating |
@@ -77,8 +76,9 @@ pending
 6. The `tdd_craftsman` walks each `@s` scenario with Red-Green-Refactor cycles.
 7. The `judge` reviews coverage, TDD discipline and quality; approves or rejects.
 8. The `mutation_tester` runs `tools/mutate.py`; demands the threshold.
-9. If everything passes, the `tdd_craftsman` marks `done` and moves the summary to
-   `progress/history.md`.
+9. If everything passes, the `tdd_craftsman` marks `done`. The permanent record
+   of the session is the git commit (`git log`) plus the `progress/<phase>_<name>.md`
+   reports.
 
 ## 5. Session close (lifecycle)
 
@@ -87,9 +87,9 @@ Before finishing:
 1. Run `./init.sh` — all green.
 2. Run the mutation test over what you touched — clears the threshold.
 3. If the task is finished: set `status: "done"` in `feature_list.json`.
-4. Move the summary from `progress/current.md` to the end of `progress/history.md`.
-5. Empty `progress/current.md`, leaving only the template.
-6. Don't leave temporary files, debug `print()`s, or TODOs without context.
+4. Empty `progress/current.md`, leaving only the template. The durable record of
+   the session lives in the git commit and the `progress/<phase>_<name>.md` reports.
+5. Don't leave temporary files, debug `print()`s, or TODOs without context.
 
 ## 6. If you get stuck
 

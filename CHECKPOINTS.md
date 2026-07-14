@@ -37,7 +37,7 @@
 
 - [ ] There are no suspicious untracked files (`*.tmp`, `__pycache__`
       outside `.gitignore`).
-- [ ] `progress/history.md` has an entry for the last session.
+- [ ] The last session's work is captured in a git commit (`git log`) and its `progress/<phase>_<name>.md` reports.
 - [ ] The last feature worked on is reflected in its correct state.
 
 ## C6 — Gherkin contract (BDD)

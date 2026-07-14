@@ -52,8 +52,8 @@ REFACTOR → clean up with the green bar: names, duplication, short functions
 5. Run `./init.sh`. Green end to end.
 6. **Don't mark `done` yourself.** Wait for the `judge` and the `mutation_tester`.
 7. If the `craftsman_lead` reinvokes you with the approved verdict and the
-   mutation cleared: change the status to `done` and move the summary to
-   `progress/history.md`.
+   mutation cleared: change the status to `done`. The permanent record is the
+   git commit plus your `progress/tdd_<name>.md` report.
 
 ## Hard rules
 

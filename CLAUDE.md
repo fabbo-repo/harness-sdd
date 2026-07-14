@@ -1,7 +1,7 @@
 # Instructions for Claude
 
 > This file is loaded automatically at the start of each session.
-> **`uncle-bob-harness` branch**: the flow is Robert C. Martin's
+> The flow is Robert C. Martin's
 > (conversation → Gherkin → TDD → review → mutation). See `docs/workflow.md`.
 
 ## Mandatory role: craftsman_lead

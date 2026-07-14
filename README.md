@@ -1,14 +1,14 @@
 # Harness SDD — Uncle Bob Workflow
 > Spec-driven, test-first development pipeline for AI agents, built around a minimal notes CLI.
 
-This branch reorganizes the same `notes-cli` around the process of
+This project organizes the `notes-cli` around the process of
 **Robert C. Martin (Uncle Bob)** described in his thread: converse the spec,
 distill it into **Gherkin** scenarios, carve the code with **strict TDD**,
 prune with **judgment**, and validate with **mutation testing**.
 
 > The app code is deliberately simple. What matters is not **what** it does,
 > but **how** it is structured so that an agent can work autonomously and
-> verifiably — and, on this branch, with the discipline of the craftsman.
+> verifiably — and with the discipline of the craftsman.
 
 ## The pipeline
 
@@ -80,9 +80,9 @@ Open `features/`, `project-spec.md` and `progress/` in your editor while
 Claude works: each report appears as soon as the subagent finishes. That is
 the anti-broken-telephone rule — the content lives on disk, not in chat.
 
-## Example already executed on this branch: `cli_count` (#8)
+## Example already executed: `cli_count` (#8)
 
-This branch includes a full end-to-end run of the `cli_count` feature,
+The repo includes a full end-to-end run of the `cli_count` feature,
 ready to inspect (or film):
 
 | Artifact                         | What it shows                                            |
@@ -120,7 +120,6 @@ python3 -m src.cli count
 ├── features/<name>.feature   # Gherkin contract (gherkin_author)
 ├── progress/
 │   ├── current.md            # Active session (live state)
-│   ├── history.md            # Append-only log
 │   ├── tdd_<name>.md         # TDD log + traceability
 │   ├── judge_<name>.md       # Review verdict
 │   └── mutation_<name>.md    # Mutation report
@@ -148,7 +147,7 @@ python3 -m src.cli count
     └── test_cli.py
 ```
 
-## Lessons this branch illustrates
+## Lessons this project illustrates
 
 - **The spec is born from a debate**, not a dictation: the `spec_partner`
   questions edge cases and records decisions with their rationale.

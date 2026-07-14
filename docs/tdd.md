@@ -1,7 +1,7 @@
 # Strict TDD — the `tdd_craftsman`'s discipline
 
 > "Do you let it write all tests up front, then code or single test
-> followed by code (TDD)?" — This branch's answer: **single test
+> followed by code (TDD)?" — This project's answer: **single test
 > followed by code**. One test at a time. Never the whole battery up front.
 
 ## The Three Laws of TDD
