@@ -57,16 +57,44 @@ Definitions in `.claude/agents/`.
 
 Full detail in **`docs/workflow.md`** (one insight per phase).
 
+## Works on any language
+
+The **method** (spec → Gherkin → TDD → review → mutation) is language-neutral.
+The only language-specific thing is *how you run tests* and *how you mutate*,
+and that lives in a single config file, **`harness.json`**:
+
+```json
+{
+  "language": "python",
+  "test_command": "python3 -m unittest discover -s tests -q",
+  "source_dir": "src",
+  "line_comment": "#"
+}
+```
+
+Point it at your stack by changing `test_command` (and `line_comment`):
+
+| Language | `test_command`                          | `line_comment` |
+|----------|-----------------------------------------|----------------|
+| Python   | `python3 -m unittest discover -s tests -q` | `#`         |
+| JS/TS    | `npm test --silent`                     | `//`           |
+| Go       | `go test ./...`                         | `//`           |
+| Rust     | `cargo test -q`                         | `//`           |
+
+The **harness tooling** (`init.sh`, `tools/mutate.py`) runs on **Python 3.9+**
+(either `python3` or `python`); this is independent of your project's language.
+The mutator (`tools/mutate.py`) is a lightweight, language-agnostic **text**
+mutator that decides killed/survived by your `test_command`'s exit code — see
+`docs/mutation-testing.md`.
+
 ## How to use it
 
-Assumes **Python 3.9+** (the harness uses `unittest` and a dependency-free
-mutator; no third-party packages).
-
 1. Use this repo as a template for your project.
-2. `./init.sh` — must finish green.
-3. Fill in `feature_list.json`: set `project`/`description` and add your first
+2. Set `harness.json` for your language (table above).
+3. `./init.sh` — must finish green.
+4. Fill in `feature_list.json`: set `project`/`description` and add your first
    feature with `status: "pending"` and `"sdd": true` (shape below).
-4. Open the repo in Claude Code and ask: **"implement the next pending feature"**.
+5. Open the repo in Claude Code and ask: **"implement the next pending feature"**.
    `CLAUDE.md` forces the model to act as `craftsman_lead` (orchestrates,
    doesn't edit code) and `docs/workflow.md` enforces the pipeline.
 
@@ -114,6 +142,7 @@ TDD → review → mutation). `name` must match the `features/<name>.feature` fi
 ├── AGENTS.md                 # Map for agents (progressive disclosure)
 ├── CHECKPOINTS.md            # "Correct final state" criteria (C1–C7)
 ├── CLAUDE.md                 # Forces the craftsman_lead role
+├── harness.json              # Language config: test_command, source_dir, …
 ├── feature_list.json         # Scope: your features, one at a time
 ├── init.sh                   # Verification and initialization
 ├── project-spec.md           # Conversed spec (spec_partner) — starts empty
@@ -132,7 +161,8 @@ TDD → review → mutation). `name` must match the `features/<name>.feature` fi
 │   ├── conventions.md        # Style, names, errors
 │   └── verification.md       # How to prove it works
 ├── tools/
-│   └── mutate.py             # Dependency-free mutator
+│   ├── mutate.py             # Language-agnostic, dependency-free mutator
+│   └── run_tests.sh          # Runs test_command from harness.json
 ├── .claude/
 │   ├── agents/               # craftsman_lead, spec_partner, gherkin_author,
 │   │                         #   tdd_craftsman, judge, mutation_tester

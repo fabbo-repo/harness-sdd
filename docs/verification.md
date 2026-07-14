@@ -2,6 +2,11 @@
 
 > Golden rule: **the agent doesn't say "it works", it proves it**.
 > Every feature ends with executable evidence, not with claims.
+>
+> Commands below are shown for the template's default **Python** stack. The
+> actual test command comes from `harness.json` (`test_command`) — run
+> `bash tools/run_tests.sh` to invoke it language-agnostically. Adapt the
+> snippets to your language.
 
 ## Verification levels
 
@@ -12,9 +17,9 @@ Every public function in `src/` has at least one test in `tests/` that:
 1. Covers the happy path.
 2. Covers at least one error path if the function can fail.
 
-Command:
+Command (language-agnostic — runs `test_command` from `harness.json`):
 ```bash
-python3 -m unittest discover -s tests -v
+bash tools/run_tests.sh
 ```
 
 ### Level 2 — CLI integration test (mandatory for UI features)

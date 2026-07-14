@@ -29,7 +29,7 @@ that isn't pushing real code. Scope doesn't inflate.
 ```
 
 - **RED** — the test derives from the next `@s` scenario of the `.feature`.
-  Verify it fails for real (`python3 -m unittest …`). A test that
+  Verify it fails for real (`bash tools/run_tests.sh`). A test that
   passes on the first try proves nothing: adjust it or be suspicious of the setup.
 - **GREEN** — the **minimal** implementation. Cheating is allowed
   (returning a constant) if there is no test yet that disproves it. The

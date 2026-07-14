@@ -69,10 +69,10 @@ Feature: Count stored items
 
 ## From Gherkin to test
 
-We don't use a BDD runner (`behave`, `pytest-bdd`) so as not to add
-external dependencies — `requirements.txt` must stay empty
-(`CHECKPOINTS.md` C3). Instead, each `Scenario` is translated **by hand** into
-a `unittest` test whose name cites the scenario:
+We don't use a BDD runner (`behave`, `pytest-bdd`, `cucumber`, …) so as not to
+add a dependency. Instead, each `Scenario` is translated **by hand** into a
+test in your project's own framework (whatever `harness.json`'s `test_command`
+runs) whose name cites the scenario:
 
 ```
 @s1 → test_count_empty_store

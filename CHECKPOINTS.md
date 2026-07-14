@@ -6,8 +6,8 @@
 
 ## C1 — The harness is complete
 
-- [ ] The 4 base files exist: `AGENTS.md`, `init.sh`, `feature_list.json`,
-      `progress/current.md`.
+- [ ] The base files exist: `AGENTS.md`, `init.sh`, `feature_list.json`,
+      `harness.json`, `progress/current.md`.
 - [ ] The 3 docs exist: `docs/architecture.md`, `docs/conventions.md`,
       `docs/verification.md`.
 - [ ] `./init.sh` finishes with exit code 0.
@@ -22,16 +22,17 @@
 ## C3 — The code respects the architecture
 
 - [ ] `src/` only contains the modules foreseen in `docs/architecture.md`.
-- [ ] There are no external dependencies in `requirements.txt` (it must be empty
-      or not exist).
-- [ ] There are no stray debug `print()`s, nor TODOs without context.
+- [ ] There are no undeclared external dependencies (see the "no external
+      dependencies by default" rule in `docs/architecture.md`).
+- [ ] There are no stray debug prints, nor TODOs without context.
 
 ## C4 — Verification is real
 
 - [ ] `tests/` has at least one test per module of `src/`.
-- [ ] The tests use `tempfile.TemporaryDirectory()`, not fs mocks.
-- [ ] `python3 -m unittest discover -s tests -v` shows > 0 tests
-      and all green.
+- [ ] The tests exercise real behavior against an isolated environment, not
+      broad mocks of the filesystem/IO.
+- [ ] The project's test command (`harness.json`) shows > 0 tests and all
+      green.
 
 ## C5 — The session was closed properly
 

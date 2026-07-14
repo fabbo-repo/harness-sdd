@@ -40,7 +40,7 @@ REFACTOR → clean up with the green bar: names, duplication, short functions
 3. **For each scenario `@s` in order**, run one or more
    Red-Green-Refactor cycles:
    a. **RED** — write a test in `tests/` that encodes that Given/When/
-      Then and verify that it **fails** (`python3 -m unittest …`). A test
+      Then and verify that it **fails** (`bash tools/run_tests.sh`). A test
       that passes on the first try proves nothing: adjust it or be suspicious.
    b. **GREEN** — the minimal implementation in `src/` that makes it green.
    c. **REFACTOR** — with the green bar, remove duplication and improve

@@ -4,7 +4,9 @@
 # This script is run by the agent when STARTING a session and before
 # declaring any task as `done`. If it fails, the session must not proceed.
 #
-# Expected output: clear exit codes and blocks marked with [OK]/[FAIL].
+# Language-agnostic: the harness *tooling* (this script + tools/mutate.py)
+# runs on Python 3.9+, but the *target project* can be in any language. The
+# test command lives in harness.json (`test_command`).
 
 set -u
 RED='\033[0;31m'
@@ -18,27 +20,30 @@ fail()  { printf "${RED}[FAIL]${NC}  %s\n" "$1"; }
 
 EXIT_CODE=0
 
-echo "── 1. Verifying environment ───────────────────────────"
+echo "── 1. Verifying harness tooling runtime ────────────────"
 
-# Python available
-if ! command -v python3 >/dev/null 2>&1; then
-  fail "python3 is not installed"
+# The harness tooling needs Python 3.9+ (for tools/mutate.py and JSON
+# validation). This is independent of your project's language. Accept either
+# `python3` or `python` so it works on Windows too.
+PYTHON=""
+for cand in python3 python; do
+  if command -v "$cand" >/dev/null 2>&1 \
+     && "$cand" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)' >/dev/null 2>&1; then
+    PYTHON="$cand"
+    break
+  fi
+done
+if [ -z "$PYTHON" ]; then
+  fail "No Python >= 3.9 found (needed for the harness tooling). Install it or fix your PATH."
   exit 1
 fi
-ok "python3 -> $(python3 --version)"
-
-# Minimum version 3.9 (dataclasses + modern typing)
-PY_VERSION_OK=$(python3 -c 'import sys; print(int(sys.version_info >= (3, 9)))')
-if [ "$PY_VERSION_OK" != "1" ]; then
-  fail "Python >= 3.9 is required"
-  exit 1
-fi
-ok "Compatible Python version"
+ok "harness tooling python -> $("$PYTHON" --version 2>&1) [$PYTHON]"
+export PYTHON
 
 echo ""
 echo "── 2. Verifying harness base files ─────────────────────"
 
-for f in AGENTS.md feature_list.json progress/current.md docs/architecture.md docs/conventions.md docs/verification.md docs/workflow.md tools/mutate.py CHECKPOINTS.md; do
+for f in AGENTS.md feature_list.json harness.json progress/current.md docs/architecture.md docs/conventions.md docs/verification.md docs/workflow.md tools/mutate.py CHECKPOINTS.md; do
   if [ ! -f "$f" ]; then
     fail "Missing base file: $f"
     EXIT_CODE=1
@@ -50,7 +55,7 @@ done
 echo ""
 echo "── 3. Validating feature_list.json and scenarios ──────"
 
-python3 - <<'PY'
+"$PYTHON" - <<'PY'
 import json, os, sys
 try:
     data = json.load(open("feature_list.json"))
@@ -88,24 +93,18 @@ PY
 if [ $? -ne 0 ]; then EXIT_CODE=1; fi
 
 echo ""
-echo "── 4. Running tests ────────────────────────────────────"
+echo "── 4. Running the project's test suite ─────────────────"
 
-if [ -d "tests" ]; then
-  TEST_OUTPUT=$(python3 -m unittest discover -s tests -v 2>&1)
-  TEST_RC=$?
-  echo "$TEST_OUTPUT"
-  if [ "$TEST_RC" -eq 0 ]; then
-    ok "All tests pass"
-  elif [ "$TEST_RC" -eq 5 ]; then
-    # Python 3.12+ returns 5 when no tests are collected. A fresh template
-    # legitimately has no tests yet — that's not a failure.
-    warn "No tests collected yet (fresh template)"
+SRC_DIR=$("$PYTHON" -c "import json; print(json.load(open('harness.json')).get('source_dir', 'src'))")
+if [ -n "$(find "$SRC_DIR" -type f ! -name '.gitkeep' 2>/dev/null | head -1)" ]; then
+  if bash tools/run_tests.sh; then
+    ok "Test suite passes"
   else
-    fail "There are broken tests"
+    fail "The test suite is red"
     EXIT_CODE=1
   fi
 else
-  warn "tests/ folder does not exist yet"
+  warn "No source in '$SRC_DIR' yet — skipping tests (fresh template)"
 fi
 
 echo ""

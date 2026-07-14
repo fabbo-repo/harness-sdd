@@ -2,6 +2,11 @@
 
 > Extreme homogeneity. The AI predicts better when the repository looks
 > like itself everywhere.
+>
+> The rules below are the **defaults for the template's Python stack**. If your
+> `harness.json` targets another language, replace this section with that
+> language's conventions (style guide, naming, error handling) — the intent
+> (homogeneity, explicit errors, small functions) carries over.
 
 ## Python style
 

@@ -1,0 +1,7 @@
+{
+  "$comment": "The ONE place that couples the harness to your project's language. The harness tooling (init.sh, tools/mutate.py) runs on Python 3.9+, but your target project can be in any language: set test_command to however you run your suite. Examples: Python -> 'python3 -m unittest discover -s tests -q'; JS/TS -> 'npm test --silent'; Go -> 'go test ./...'; Rust -> 'cargo test -q'.",
+  "language": "python",
+  "test_command": "python3 -m unittest discover -s tests -q",
+  "source_dir": "src",
+  "line_comment": "#"
+}

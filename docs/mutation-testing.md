@@ -20,33 +20,43 @@ defect into the code (a *mutant*) and observes the suite.
 
 **Mutation score** = `killed / total`. The higher, the more the tests bite.
 
-## This repo's mutator: `tools/mutate.py`
+## This repo's mutator: `tools/mutate.py` (language-agnostic)
 
-No external dependencies (we keep `requirements.txt` empty). The script:
+Dependency-free and **works on any language**. Instead of parsing a specific
+language's AST, it mutates **text** and decides KILLED vs SURVIVED purely by
+the **exit code of your test command** (from `harness.json`). The script:
 
-1. Reads a file from `src/`.
-2. Applies, **one by one**, a catalog of textual mutations:
+1. Reads `test_command` and `line_comment` from `harness.json`.
+2. Reads the target file and finds mutation sites, applying **one by one** a
+   small catalog of operators/keywords common across languages:
 
-   | Category     | Example mutation                             |
-   |--------------|----------------------------------------------|
-   | Comparison   | `<=` → `<`, `==` → `!=`, `>` → `>=`          |
-   | Arithmetic   | `+` → `-`, `- 1` → `+ 1`                      |
-   | Boolean      | `and` → `or`, `True` → `False`               |
-   | Constants    | `0` → `1`, `1` → `0`                          |
-   | Return       | `return <expr>` → `return None`              |
+   | Category           | Mutations                              |
+   |--------------------|----------------------------------------|
+   | Comparison         | `==` ↔ `!=`, `<=` → `<`, `>=` → `>`     |
+   | Boolean connectors | `&&` ↔ `\|\|`, `and` ↔ `or`             |
+   | Arithmetic         | ` + ` ↔ ` - `                          |
+   | Booleans           | `true` ↔ `false`, `True` ↔ `False`     |
 
-3. For each mutant: writes the mutated file, runs
-   `python3 -m unittest discover -s tests -q`, restores the original.
-4. Reports `total`, `killed`, `survived`, `score` and the list of
-   survivors (file:line + mutation).
+   Whole-line comments (the `line_comment` prefix) are skipped.
+3. For each mutant: writes the mutated file, runs `test_command`, restores
+   the original. **Non-zero exit = killed.**
+4. Reports `total`, `killed`, `survived`, `score` and the list of survivors
+   (file:line + mutation).
 
 ```bash
 python3 tools/mutate.py src/<module>.py            # mutate a file
-python3 tools/mutate.py src/<module>.py --max 80   # cap the number of mutants
+python3 tools/mutate.py src/<module>.py --max 80   # cap (random sample)
 ```
 
-The script **always restores** the original file, even if you interrupt
-it (it handles cleanup in `finally`).
+The script **always restores** the original file, even if you interrupt it
+(cleanup in `finally`).
+
+**Lightweight tradeoffs (by design):** because it's text-based, it can touch
+strings or inline comments (occasional noise), and a mutant that breaks
+compilation makes the test command fail, so it counts as KILLED. Keeping the
+catalog to operators/keywords and functions small keeps the score meaningful.
+The harness *tooling* runs on Python 3.9+; the *project under test* can be any
+language.
 
 ## The threshold
 

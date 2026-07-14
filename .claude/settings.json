@@ -7,8 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -m unittest discover -s tests -q 2>&1 | tail -3",
-            "description": "After editing or writing files, run the tests and show the summary."
+            "command": "bash tools/run_tests.sh 2>&1 | tail -3",
+            "description": "After editing or writing files, run the project's test suite (harness.json) and show the summary."
           }
         ]
       }
@@ -28,8 +28,9 @@
   "permissions": {
     "allow": [
       "Bash(./init.sh)",
-      "Bash(python3 -m unittest*)",
-      "Bash(python3 tools/mutate.py*)"
+      "Bash(bash tools/run_tests.sh)",
+      "Bash(python3 tools/mutate.py*)",
+      "Bash(python tools/mutate.py*)"
     ]
   }
 }

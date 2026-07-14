@@ -1,213 +1,145 @@
 #!/usr/bin/env python3
-"""Minimal, dependency-free mutator for mutation testing.
+"""Language-agnostic, dependency-free mutator for mutation testing.
 
-Introduces a small defect into a file in `src/`, runs the test suite
-and checks whether some test fails (KILLED mutant) or all pass
-(SURVIVING mutant). A survivor is a hole in the test net.
+Reads the project's test command from `harness.json`, introduces ONE small
+textual defect into a target file at a time (a *mutant*), runs the suite, and
+checks whether some test fails (KILLED) or all pass (SURVIVED). A survivor is
+a hole in the test net.
 
 Usage:
-    python3 tools/mutate.py src/<module>.py
-    python3 tools/mutate.py src/<module>.py --max 80
+    python3 tools/mutate.py path/to/source_file
+    python3 tools/mutate.py path/to/source_file --max 80
 
-Design:
-- Works at the *token* level (the `tokenize` module), so it NEVER mutates
-  the contents of strings or comments: only operators, keywords,
-  numbers and `return` statements.
-- Discards mutants that don't compile (they don't inflate the score).
-- ALWAYS restores the original file, even on Ctrl-C (`finally`
-  block).
+Design (deliberately lightweight — works on ANY language):
+- Operates on TEXT, not a language AST, so it runs against Python, JS/TS, Go,
+  Rust, Java, … It swaps a small catalog of operators/keywords that are common
+  across languages (comparisons, boolean connectors, arithmetic, booleans).
+- Skips whole-line comments (the `line_comment` prefix from harness.json) to
+  avoid trivial noise. It may still touch strings or inline comments — keep
+  functions small and the score stays meaningful.
+- KILLED vs SURVIVED is decided purely by the test command's exit code
+  (non-zero = killed). A mutant that breaks compilation makes the command fail,
+  so it counts as KILLED; that's why the catalog sticks to operators/keywords.
+- ALWAYS restores the original file, even on Ctrl-C (finally block).
 
-See `docs/mutation-testing.md`.
+See docs/mutation-testing.md.
 """
 from __future__ import annotations
 
 import argparse
-import io
+import json
+import random
+import re
 import subprocess
 import sys
-import tokenize
 
-# Operator mutations: OP token -> replacement.
-OP_MUTATIONS = {
-    "<=": "<",
-    ">=": ">",
-    "<": "<=",
-    ">": ">=",
-    "==": "!=",
-    "!=": "==",
-    "+": "-",
-    "-": "+",
-}
+CONFIG_PATH = "harness.json"
 
-# Keyword/constant mutations: NAME token -> replacement.
-NAME_MUTATIONS = {
-    "and": "or",
-    "or": "and",
-    "True": "False",
-    "False": "True",
-}
-
-TEST_CMD = [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-q"]
+# (compiled regex, replacement, human label). The lookarounds keep us away from
+# compound operators (===, !==, <=, +=, ++, --, …) in the common languages.
+_RULES = [
+    (re.compile(r"(?<![=!<>])==(?!=)"), "!=", "== -> !="),
+    (re.compile(r"(?<![=!])!=(?!=)"), "==", "!= -> =="),
+    (re.compile(r"<="), "<", "<= -> <"),
+    (re.compile(r">="), ">", ">= -> >"),
+    (re.compile(r"&&"), "||", "&& -> ||"),
+    (re.compile(r"\|\|"), "&&", "|| -> &&"),
+    (re.compile(r"(?<=\s)\+(?=\s)"), "-", "+ -> -"),
+    (re.compile(r"(?<=\s)-(?=\s)"), "+", "- -> +"),
+    (re.compile(r"\btrue\b"), "false", "true -> false"),
+    (re.compile(r"\bfalse\b"), "true", "false -> true"),
+    (re.compile(r"\bTrue\b"), "False", "True -> False"),
+    (re.compile(r"\bFalse\b"), "True", "False -> True"),
+    (re.compile(r"\band\b"), "or", "and -> or"),
+    (re.compile(r"\bor\b"), "and", "or -> and"),
+]
 
 
-class Mutant:
-    """A single mutation: replaces a span (line, col) of the source."""
-
-    def __init__(self, row: int, col_start: int, col_end: int,
-                 original: str, replacement: str, label: str):
-        self.row = row              # 1-based
-        self.col_start = col_start  # 0-based
-        self.col_end = col_end
-        self.original = original
-        self.replacement = replacement
-        self.label = label
-
-    def apply(self, lines: list[str]) -> str:
-        out = list(lines)
-        line = out[self.row - 1]
-        out[self.row - 1] = line[: self.col_start] + \
-            self.replacement + line[self.col_end:]
-        return "".join(out)
-
-    def describe(self, path: str) -> str:
-        return f"{path}:{self.row}  {self.label}  ({self.original!r} -> {self.replacement!r})"
-
-
-def _int_mutation(literal: str) -> str | None:
-    """Integer literal mutation: n -> n+1 (and 0 -> 1, without touching floats)."""
+def load_config(path: str = CONFIG_PATH) -> dict:
     try:
-        value = int(literal, 0)
-    except ValueError:
-        return None
-    return str(value + 1)
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+    except FileNotFoundError:
+        sys.exit(f"[mutate] config not found: {path}")
+    except json.JSONDecodeError as exc:
+        sys.exit(f"[mutate] invalid {path}: {exc}")
 
 
-def generate_mutants(source: str) -> list[Mutant]:
-    mutants: list[Mutant] = []
-    try:
-        tokens = list(tokenize.generate_tokens(io.StringIO(source).readline))
-    except tokenize.TokenError:
-        return mutants
-
-    for tok in tokens:
-        # multi-line tokens are left out (these mutations don't apply)
-        if tok.start[0] != tok.end[0]:
+def find_sites(lines: list[str], line_comment: str) -> list[tuple]:
+    """One entry per possible single mutation: (line_index, start, end, repl, label)."""
+    sites = []
+    for i, line in enumerate(lines):
+        if line_comment and line.lstrip().startswith(line_comment):
             continue
-        row = tok.start[0]
-        col_start, col_end = tok.start[1], tok.end[1]
-        text = tok.string
-
-        if tok.type == tokenize.OP and text in OP_MUTATIONS:
-            mutants.append(Mutant(row, col_start, col_end, text,
-                                  OP_MUTATIONS[text], "operator"))
-        elif tok.type == tokenize.NAME and text in NAME_MUTATIONS:
-            mutants.append(Mutant(row, col_start, col_end, text,
-                                  NAME_MUTATIONS[text], "keyword"))
-        elif tok.type == tokenize.NUMBER:
-            repl = _int_mutation(text)
-            if repl is not None:
-                mutants.append(Mutant(row, col_start, col_end, text,
-                                      repl, "number"))
-
-    # Return mutation: `return <expr>` -> `return None`.
-    lines = source.splitlines(keepends=True)
-    for idx, raw in enumerate(lines, start=1):
-        stripped = raw.lstrip()
-        if not stripped.startswith("return "):
-            continue
-        rest = stripped[len("return "):].strip()
-        if rest in ("", "None"):
-            continue
-        indent = len(raw) - len(stripped)
-        # replace from 'return' to the end of the line's content
-        content = raw.rstrip("\n")
-        mutants.append(
-            Mutant(idx, indent, len(content),
-                   content[indent:], "return None", "return")
-        )
-    return mutants
+        for rx, repl, label in _RULES:
+            for m in rx.finditer(line):
+                sites.append((i, m.start(), m.end(), repl, label))
+    return sites
 
 
-def compiles(source: str, path: str) -> bool:
-    try:
-        compile(source, path, "exec")
-        return True
-    except SyntaxError:
-        return False
+def mutate_line(line: str, start: int, end: int, repl: str) -> str:
+    return line[:start] + repl + line[end:]
 
 
-def run_tests() -> bool:
-    """Returns True if the suite passes (returncode 0)."""
-    result = subprocess.run(TEST_CMD, stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL)
-    return result.returncode == 0
+def run_tests(test_command: str) -> int:
+    proc = subprocess.run(test_command, shell=True)
+    return proc.returncode
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Minimal mutation testing.")
-    parser.add_argument("path", help="File in src/ to mutate.")
-    parser.add_argument("--max", type=int, default=100,
-                        help="Maximum number of mutants to evaluate (default 100).")
-    args = parser.parse_args(argv)
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Language-agnostic mutation tester.")
+    parser.add_argument("target", help="Source file to mutate.")
+    parser.add_argument("--max", type=int, default=0,
+                        help="Cap the number of mutants (0 = all). Sampled at random.")
+    parser.add_argument("--config", default=CONFIG_PATH, help="Path to harness.json.")
+    args = parser.parse_args()
 
-    with open(args.path, "r", encoding="utf-8") as f:
-        original = f.read()
+    config = load_config(args.config)
+    test_command = config["test_command"]
+    line_comment = config.get("line_comment", "")
+
+    with open(args.target, encoding="utf-8") as fh:
+        original = fh.read()
     lines = original.splitlines(keepends=True)
 
-    # Sanity check: the suite must be GREEN before mutating.
-    if not run_tests():
-        print("[FAIL] The suite is red without mutating. Fix the tests first.",
-              file=sys.stderr)
-        return 2
+    sites = find_sites(lines, line_comment)
+    if not sites:
+        print(f"[mutate] no mutable operators/keywords found in {args.target}")
+        return 0
 
-    mutants = generate_mutants(original)
-    valid = [m for m in mutants if compiles(m.apply(lines), args.path)]
-    skipped_noncompile = len(mutants) - len(valid)
+    if args.max and len(sites) > args.max:
+        sites = random.sample(sites, args.max)
 
-    truncated = 0
-    if len(valid) > args.max:
-        truncated = len(valid) - args.max
-        valid = valid[: args.max]
-
-    killed: list[Mutant] = []
-    survived: list[Mutant] = []
-
-    print(f"── Mutating {args.path} ─ {len(valid)} valid mutants "
-          f"({skipped_noncompile} discarded for not compiling)")
+    killed, survived = 0, []
+    print(f"[mutate] {args.target}: {len(sites)} mutants | test: {test_command}\n")
     try:
-        for i, m in enumerate(valid, start=1):
-            with open(args.path, "w", encoding="utf-8") as f:
-                f.write(m.apply(lines))
-            if run_tests():
-                survived.append(m)
-                mark = "SURVIVES"
+        for n, (i, s, e, repl, label) in enumerate(sites, 1):
+            mutated = lines[:]
+            mutated[i] = mutate_line(lines[i], s, e, repl)
+            with open(args.target, "w", encoding="utf-8") as fh:
+                fh.write("".join(mutated))
+            rc = run_tests(test_command)
+            if rc != 0:
+                killed += 1
+                status = "killed"
             else:
-                killed.append(m)
-                mark = "killed"
-            print(f"  [{i}/{len(valid)}] {mark:9} {m.describe(args.path)}")
+                survived.append((i + 1, label))
+                status = "SURVIVED"
+            print(f"  [{n}/{len(sites)}] line {i + 1}: {label:<16} -> {status}")
     finally:
-        with open(args.path, "w", encoding="utf-8") as f:
-            f.write(original)
+        with open(args.target, "w", encoding="utf-8") as fh:
+            fh.write(original)
 
-    total = len(valid)
-    score = (len(killed) / total * 100) if total else 100.0
-
-    print("\n── Summary ──────────────────────────────────────")
-    print(f"  total:    {total}")
-    print(f"  killed:   {len(killed)}")
-    print(f"  survived: {len(survived)}")
-    print(f"  score:    {score:.1f}%")
-    if truncated:
-        print(f"  [WARN] {truncated} valid mutants NOT evaluated "
-              f"(limit --max={args.max}). Raise --max for full coverage.")
+    total = len(sites)
+    score = 100.0 * killed / total if total else 0.0
+    print(f"\n[mutate] total={total} killed={killed} survived={len(survived)} "
+          f"score={score:.1f}%")
     if survived:
-        print("\n  Surviving mutants (holes in the net):")
-        for m in survived:
-            print(f"   - {m.describe(args.path)}")
-
-    # Exit code: 0 if none survive, 1 if any survives.
+        print("[mutate] surviving mutants (holes in the net):")
+        for line_no, label in survived:
+            print(f"  {args.target}:{line_no}  {label}")
     return 0 if not survived else 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

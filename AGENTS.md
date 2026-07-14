@@ -23,6 +23,7 @@
 | File / folder                | What it contains                                                            | When to read it |
 |------------------------------|-----------------------------------------------------------------------------|---------------|
 | `feature_list.json`          | Task list with status (`pending` / `spec_ready` / `in_progress` / `done` / `blocked`) | Always, at the start |
+| `harness.json`               | Language config: `test_command`, `source_dir`, `line_comment`               | To run tests or mutation |
 | `progress/current.md`        | State of the current session                                               | Always, at the start |
 | `project-spec.md`            | Conversed spec: purpose, contract and decisions per feature                 | Before distilling Gherkin or implementing |
 | `features/<name>.feature`    | Gherkin scenarios (the executable contract the human approves)              | Before starting the TDD cycle |
