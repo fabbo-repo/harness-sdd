@@ -41,8 +41,8 @@ No external dependencies (we keep `requirements.txt` empty). The script:
    survivors (file:line + mutation).
 
 ```bash
-python3 tools/mutate.py src/cli.py            # mutate a file
-python3 tools/mutate.py src/cli.py --max 80   # cap the number of mutants
+python3 tools/mutate.py src/<module>.py            # mutate a file
+python3 tools/mutate.py src/<module>.py --max 80   # cap the number of mutants
 ```
 
 The script **always restores** the original file, even if you interrupt
@@ -52,8 +52,8 @@ it (it handles cleanup in `finally`).
 
 - By default, the feature requires **100% killed mutants over the new or
   touched lines** of that feature.
-- For legacy code not touched by the feature, no threshold is required on this
-  branch (it is measured, not blocked).
+- For pre-existing code not touched by the feature, no threshold is required
+  (it is measured, not blocked).
 - An **equivalent** mutant (doesn't change the observable behavior; e.g.
   mutating a value that is never used) may be excluded, but **only** with
   explicit justification written in `progress/mutation_<name>.md`. Abusing

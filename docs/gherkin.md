@@ -41,30 +41,30 @@ Feature: <purpose in one sentence>
 - **No implementation details.** The `.feature` describes
   behavior, not functions or variable names.
 
-## Example (feature `cli_count`)
+## Example (a generic `count`-style feature)
 
 ```gherkin
-Feature: Count notes
-  As a user I want to know how many notes I have so I get a quick overview.
+Feature: Count stored items
+  As a user I want to know how many items I have so I get a quick overview.
 
   @s1
-  Scenario: Empty file prints 0
-    Given an empty notes store
-    When I run "python -m src.cli count"
+  Scenario: Empty store prints 0
+    Given an empty store
+    When I run "python -m src.<entrypoint> count"
     Then standard output is exactly "0"
     And the exit code is 0
 
   @s2
-  Scenario: Several notes prints the exact total
-    Given a store with 3 notes
-    When I run "python -m src.cli count"
+  Scenario: Several items print the exact total
+    Given a store with 3 items
+    When I run "python -m src.<entrypoint> count"
     Then standard output is exactly "3"
 
   @s3
   Scenario: count doesn't modify the store
-    Given a store with 2 notes
-    When I run "python -m src.cli count"
-    Then the notes file is left byte-for-byte the same as before
+    Given a store with 2 items
+    When I run "python -m src.<entrypoint> count"
+    Then the store file is left byte-for-byte the same as before
 ```
 
 ## From Gherkin to test
@@ -75,9 +75,9 @@ external dependencies — `requirements.txt` must stay empty
 a `unittest` test whose name cites the scenario:
 
 ```
-@s1 → test_count_empty_file
-@s2 → test_count_several_notes
-@s3 → test_count_does_not_mutate_file
+@s1 → test_count_empty_store
+@s2 → test_count_several_items
+@s3 → test_count_does_not_mutate_store
 ```
 
 The `tdd_craftsman` writes these tests one by one (Red→Green→Refactor) and

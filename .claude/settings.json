@@ -29,7 +29,7 @@
     "allow": [
       "Bash(./init.sh)",
       "Bash(python3 -m unittest*)",
-      "Bash(python3 -m src.cli*)"
+      "Bash(python3 tools/mutate.py*)"
     ]
   }
 }

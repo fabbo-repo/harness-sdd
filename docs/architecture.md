@@ -1,47 +1,52 @@
 # Architecture — What "doing good work" means
 
-> This document defines the quality standard. The reviewer agents
-> evaluate code against this file. If it's not here, it's not a requirement.
+> This document defines **your project's** quality standard. The reviewer
+> agents (`judge`) evaluate code against this file. If it's not here, it's not
+> a requirement.
+>
+> It ships as a **template**: the principles below are sensible defaults for a
+> small, dependency-free Python project. Edit them to fit your project — add
+> your layers, your invariants, your "do / don't" — before you start building.
 
-## Principles
+## Principles (defaults — edit for your project)
 
-1. **Clear layers.** The project has three layers and only three:
-   - `storage.py` — persistence (JSON on disk).
-   - `notes.py` — domain model (`Note`).
-   - `cli.py` — user interface (argparse).
-   Do not introduce additional layers (services, repositories, ORMs) until
-   there is a concrete reason documented in `feature_list.json`.
+1. **Clear, few layers.** Define the layers your project has and keep them
+   few and explicit. Do not introduce additional layers (services,
+   repositories, ORMs, …) until there is a concrete reason documented in
+   `feature_list.json`.
 
-2. **No external dependencies.** Only Python's stdlib. If a feature
-   requires a dependency, it is discussed first (`blocked` state).
+   _Fill in your layers, e.g.:_
+   - `<persistence>.py` — how state is stored.
+   - `<domain>.py` — the domain model.
+   - `<interface>.py` — the entry point (CLI, HTTP, …).
 
-3. **Explicit errors.** Functions that can fail (id doesn't exist,
-   corrupt file) raise named exceptions, they don't return `None`.
+2. **No external dependencies by default.** Prefer Python's stdlib. If a
+   feature genuinely requires a dependency, it is discussed first (`blocked`
+   state) — this keeps the harness reproducible and the mutator
+   (`tools/mutate.py`) meaningful.
 
-4. **Immutability by default.** `Note` is a `@dataclass(frozen=True)`.
+3. **Explicit errors.** Functions that can fail raise named exceptions; they
+   don't silently return `None`.
+
+4. **Immutability by default.** Prefer immutable data (`@dataclass(frozen=True)`).
    Modifying = creating a new instance.
 
-5. **Atomicity on disk.** Every write to `notes.json` is done first
-   to a temp file and then `os.replace()`. Never leave the file
-   half-written.
+5. **Atomicity on disk.** If you persist state, write to a temp file and then
+   `os.replace()`. Never leave a file half-written.
 
 ## Data flow
 
+_Sketch how a request travels through your layers, e.g.:_
+
 ```
-user     ─→  cli.py (argparse)
-              │
-              ├─ builds a Note with notes.Note.new(...)
-              │
-              └─→  storage.load() / storage.save()
-                       │
-                       └─→  .notes.json (in CWD)
+user ─→ <interface>  ─→  <domain>  ─→  <persistence>  ─→  storage
 ```
 
-## What NOT to do
+## What NOT to do (defaults — edit for your project)
 
 - Don't use `print()` for errors. Use `sys.stderr` and a non-zero exit code.
-- Don't mix IO with domain logic inside `notes.py`.
-- Don't read/write the file on every operation inside a loop.
-  Load at the start, modify in memory, save at the end.
-- Don't add a configuration system. The file path is passed
-  explicitly or uses the default constant.
+- Don't mix IO with domain logic.
+- Don't read/write persistent state inside a tight loop. Load once, modify in
+  memory, save once.
+- Don't add a configuration system before a feature needs one; pass paths and
+  options explicitly or via a documented default constant.

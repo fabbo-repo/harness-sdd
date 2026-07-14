@@ -53,7 +53,7 @@ Block in `progress/mutation_<name>.md`:
 **Score:** killed/total = N% (threshold: M%)
 
 ## Surviving mutants (if any)
-- src/cli.py:42  `len(notes)` → `len(notes) - 1`
+- src/<module>.py:42  `len(items)` → `len(items) - 1`
   Missing: a test that distinguishes the exact count (not just > 0).
 ```
 

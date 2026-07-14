@@ -19,29 +19,29 @@ python3 -m unittest discover -s tests -v
 
 ### Level 2 — CLI integration test (mandatory for UI features)
 
-Features that add commands to the CLI are verified by running the real CLI
-against a temporary file:
+Features that expose an entry point (CLI/HTTP/…) are verified by running the
+real interface against a temporary, isolated environment:
 
 ```python
 import subprocess, tempfile, os
 with tempfile.TemporaryDirectory() as d:
-    env = {**os.environ, "NOTES_FILE": os.path.join(d, "notes.json")}
+    env = {**os.environ, "STORE_FILE": os.path.join(d, "store.json")}
     out = subprocess.check_output(
-        ["python3", "-m", "src.cli", "add", "hello", "--body", "world"],
+        ["python3", "-m", "src.<entrypoint>", "<command>", "<args>"],
         env=env, text=True,
     )
-    assert "id=" in out
+    assert "<expected>" in out
 ```
 
 ### Level 3 — Manual smoke test (optional but recommended)
 
-Before closing the session, run an end-to-end flow with a temporary
-file in `/tmp`:
+Before closing the session, run an end-to-end flow against a temporary,
+throwaway environment:
 
 ```bash
-NOTES_FILE=/tmp/notes_demo.json python3 -m src.cli add "test" --body "x"
-NOTES_FILE=/tmp/notes_demo.json python3 -m src.cli list
-rm /tmp/notes_demo.json
+STORE_FILE=/tmp/demo_store.json python3 -m src.<entrypoint> <command> <args>
+STORE_FILE=/tmp/demo_store.json python3 -m src.<entrypoint> <read-command>
+rm /tmp/demo_store.json
 ```
 
 ### Level 4 — Scenario traceability (mandatory for features with `"sdd": true`)
@@ -53,9 +53,9 @@ The `tdd_craftsman` documents the map in `progress/tdd_<name>.md`:
 
 ```markdown
 ## Traceability
-- @s1 (empty file → 0) → test_count_empty_file
-- @s2 (several notes → 3)  → test_count_several_notes
-- @s3 (doesn't mutate the file) → test_count_does_not_mutate_file
+- @s1 (<happy path>)     → test_<behavior>
+- @s2 (<edge case>)      → test_<edge_case>
+- @s3 (<error path>)     → test_<error_path>
 ```
 
 ### Level 5 — Mutation testing (mandatory to close an sdd feature)
@@ -65,7 +65,7 @@ A green suite is not enough: you must prove that the tests **bite**. The
 `docs/mutation-testing.md`:
 
 ```bash
-python3 tools/mutate.py src/cli.py
+python3 tools/mutate.py src/<module>.py
 ```
 
 Every surviving mutant is killed with a new test or justified as
@@ -83,7 +83,7 @@ equivalent in `progress/mutation_<name>.md`.
 
 ```bash
 ./init.sh                       # must finish with [OK] Environment ready
-python3 tools/mutate.py src/cli.py   # score above the threshold
+python3 tools/mutate.py src/<module>.py   # score above the threshold
 ```
 
 If `./init.sh` is red or mutants survive without justification, do **not**

@@ -91,8 +91,15 @@ echo ""
 echo "── 4. Running tests ────────────────────────────────────"
 
 if [ -d "tests" ]; then
-  if python3 -m unittest discover -s tests -v 2>&1; then
+  TEST_OUTPUT=$(python3 -m unittest discover -s tests -v 2>&1)
+  TEST_RC=$?
+  echo "$TEST_OUTPUT"
+  if [ "$TEST_RC" -eq 0 ]; then
     ok "All tests pass"
+  elif [ "$TEST_RC" -eq 5 ]; then
+    # Python 3.12+ returns 5 when no tests are collected. A fresh template
+    # legitimately has no tests yet — that's not a failure.
+    warn "No tests collected yet (fresh template)"
   else
     fail "There are broken tests"
     EXIT_CODE=1

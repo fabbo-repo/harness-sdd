@@ -16,10 +16,10 @@
 
 | Type                    | Convention        | Example               |
 |-------------------------|-------------------|-----------------------|
-| Modules                 | `snake_case`      | `notes.py`            |
-| Classes                 | `PascalCase`      | `Note`                |
-| Functions / variables   | `snake_case`      | `load_notes`          |
-| Constants               | `UPPER_SNAKE`     | `DEFAULT_NOTES_PATH`  |
+| Modules                 | `snake_case`      | `storage.py`          |
+| Classes                 | `PascalCase`      | `Record`              |
+| Functions / variables   | `snake_case`      | `load_records`        |
+| Constants               | `UPPER_SNAKE`     | `DEFAULT_STORE_PATH`  |
 | Private                 | `_` prefix        | `_atomic_write`       |
 
 ## File structure
@@ -35,7 +35,7 @@ import json
 import os
 
 # local imports
-from src.notes import Note
+from src.domain import Record
 ```
 
 ## Tests
@@ -47,18 +47,18 @@ from src.notes import Note
 
 ## Error handling
 
-Domain exceptions in `src/notes.py`:
+Define your domain exceptions in one place (e.g. `src/domain.py`):
 
 ```python
-class NoteError(Exception):
+class AppError(Exception):
     """Base for domain errors."""
 
-class NoteNotFound(NoteError):
-    """Raised when a non-existent note is looked up."""
+class NotFound(AppError):
+    """Raised when a non-existent entity is looked up."""
 ```
 
-The CLI captures domain exceptions, prints a message to `stderr` and exits
-with code 1. It never propagates stack traces to the user.
+The entry point captures domain exceptions, prints a message to `stderr` and
+exits with a non-zero code. It never propagates stack traces to the user.
 
 ## Comments
 

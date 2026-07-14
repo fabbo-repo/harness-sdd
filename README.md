@@ -1,14 +1,18 @@
-# Harness SDD — Uncle Bob Workflow
-> Spec-driven, test-first development pipeline for AI agents, built around a minimal notes CLI.
+# Harness SDD — Spec-Driven Development harness for AI agents
 
-This project organizes the `notes-cli` around the process of
-**Robert C. Martin (Uncle Bob)** described in his thread: converse the spec,
-distill it into **Gherkin** scenarios, carve the code with **strict TDD**,
-prune with **judgment**, and validate with **mutation testing**.
+> A reusable **template** that makes an AI agent build *your* Python project
+> with the discipline of a craftsman: converse the spec, distill it into
+> **Gherkin**, carve the code with **strict TDD**, prune with **judgment**, and
+> validate with **mutation testing**.
 
-> The app code is deliberately simple. What matters is not **what** it does,
-> but **how** it is structured so that an agent can work autonomously and
-> verifiably — and with the discipline of the craftsman.
+This repo is not an application — it is the **harness** (the scaffolding, roles,
+docs and gates) around Robert C. Martin's flow. You point it at your own
+project: you describe features, and the agent walks each one through a fixed
+pipeline, stopping at a single human approval gate before writing any code.
+
+> The point is not *what* you build, but *how*: so an agent can work
+> autonomously and verifiably, with the process — not chat — as the source of
+> truth.
 
 ## The pipeline
 
@@ -27,19 +31,6 @@ pending
 One feature at a time. One single human approval gate: over the Gherkin
 contract, **before** writing production code.
 
-## The insights from the thread, mapped to each step
-
-| Step              | Idea from the thread                                                           | Where it lives in the repo       |
-|-------------------|--------------------------------------------------------------------------------|----------------------------------|
-| Conversed spec    | "I have the AI write the spec by having a conversation… we debate decisions"   | `spec_partner` → `project-spec.md` |
-| Gherkin           | "create a set of .feature files from the project-spec.md"                      | `gherkin_author` → `features/`   |
-| TDD               | "single test followed by code (TDD)" — one test at a time                      | `tdd_craftsman`, `docs/tdd.md`   |
-| Review            | "The review step is the whole game. Agents draft, judgment prunes."            | `judge`                          |
-| Mutation          | "Mutation testing is resource-heavy, but the ROI… is worth every cycle."       | `mutation_tester`, `tools/mutate.py` |
-| Compute-bound     | "Raw computer power is the limiting factor" — the bottleneck is validating, not typing | mutation re-runs the suite for each mutant |
-
-Full detail in **`docs/workflow.md`** (insight per phase).
-
 ## The agents
 
 | Agent             | Role                                                                | Writes                               |
@@ -53,16 +44,31 @@ Full detail in **`docs/workflow.md`** (insight per phase).
 
 Definitions in `.claude/agents/`.
 
-## Try it yourself with Claude Code
+## The insights behind each step
 
-Open Claude Code at the repo root: `CLAUDE.md` forces the model to act as
-`craftsman_lead` (orchestrates, doesn't edit code) and `docs/workflow.md`
-enforces the pipeline.
+| Step              | Idea from Uncle Bob's thread                                                   | Where it lives                   |
+|-------------------|--------------------------------------------------------------------------------|----------------------------------|
+| Conversed spec    | "I have the AI write the spec by having a conversation… we debate decisions"   | `spec_partner` → `project-spec.md` |
+| Gherkin           | "create a set of .feature files from the project-spec.md"                      | `gherkin_author` → `features/`   |
+| TDD               | "single test followed by code (TDD)" — one test at a time                      | `tdd_craftsman`, `docs/tdd.md`   |
+| Review            | "The review step is the whole game. Agents draft, judgment prunes."            | `judge`                          |
+| Mutation          | "Mutation testing is resource-heavy, but the ROI… is worth every cycle."       | `mutation_tester`, `tools/mutate.py` |
+| Compute-bound     | "Raw computer power is the limiting factor" — the bottleneck is validating, not typing | mutation re-runs the suite per mutant |
 
-1. `./init.sh` — must finish green.
-2. In `feature_list.json` leave a feature with `status: "pending"` and
-   `"sdd": true` (e.g. #9 `cli_export`).
-3. Launch `claude` and ask: **"implement the next pending feature"**.
+Full detail in **`docs/workflow.md`** (one insight per phase).
+
+## How to use it
+
+Assumes **Python 3.9+** (the harness uses `unittest` and a dependency-free
+mutator; no third-party packages).
+
+1. Use this repo as a template for your project.
+2. `./init.sh` — must finish green.
+3. Fill in `feature_list.json`: set `project`/`description` and add your first
+   feature with `status: "pending"` and `"sdd": true` (shape below).
+4. Open the repo in Claude Code and ask: **"implement the next pending feature"**.
+   `CLAUDE.md` forces the model to act as `craftsman_lead` (orchestrates,
+   doesn't edit code) and `docs/workflow.md` enforces the pipeline.
 
 What happens:
 
@@ -73,39 +79,33 @@ What happens:
 - **Phase 2 — Code.** After your "approved", the lead moves to `in_progress`
   and launches `tdd_craftsman` (Red-Green-Refactor, one test at a time), then
   `judge` (review) and then `mutation_tester`
-  (`python3 tools/mutate.py src/cli.py`). Only if mutation clears the
+  (`python3 tools/mutate.py src/<module>.py`). Only if mutation clears the
   threshold does the feature move to `done`.
 
-Open `features/`, `project-spec.md` and `progress/` in your editor while
-Claude works: each report appears as soon as the subagent finishes. That is
-the anti-broken-telephone rule — the content lives on disk, not in chat.
+Open `features/`, `project-spec.md` and `progress/` in your editor while the
+agent works: each report appears as soon as the subagent finishes. That is the
+anti-broken-telephone rule — the content lives on disk, not in chat.
 
-## Example already executed: `cli_count` (#8)
+### Feature shape in `feature_list.json`
 
-The repo includes a full end-to-end run of the `cli_count` feature,
-ready to inspect (or film):
-
-| Artifact                         | What it shows                                            |
-|----------------------------------|----------------------------------------------------------|
-| `features/cli_count.feature`     | The contract: 7 scenarios `@s1..@s7`                     |
-| `progress/tdd_cli_count.md`      | Red-Green-Refactor log + `@s → test` map                 |
-| `progress/judge_cli_count.md`    | Review verdict (APPROVED) + checkpoints                  |
-| `progress/mutation_cli_count.md` | Mutation score: **100%** over the feature's lines        |
-| `src/cli.py`, `tests/test_cli.py`| The code and its 7 tests (one per scenario)              |
-
-Reproduce the mutation test:
-
-```bash
-python3 tools/mutate.py src/cli.py
+```json
+{
+  "id": 1,
+  "name": "my_feature",
+  "title": "Human-readable title",
+  "description": "What the feature does, in one or two sentences.",
+  "acceptance": [
+    "A concrete, checkable statement about observable behavior",
+    "Another one, including error/edge cases",
+    "tests/ cover the cases above"
+  ],
+  "sdd": true,
+  "status": "pending"
+}
 ```
 
-## Using the app (humans)
-
-```bash
-python3 -m src.cli add "buy bread" --body "and milk"
-python3 -m src.cli list
-python3 -m src.cli count
-```
+`"sdd": true` sends the feature through the full pipeline (spec → Gherkin →
+TDD → review → mutation). `name` must match the `features/<name>.feature` file.
 
 ## Structure
 
@@ -114,21 +114,21 @@ python3 -m src.cli count
 ├── AGENTS.md                 # Map for agents (progressive disclosure)
 ├── CHECKPOINTS.md            # "Correct final state" criteria (C1–C7)
 ├── CLAUDE.md                 # Forces the craftsman_lead role
-├── feature_list.json         # Scope: one feature at a time
+├── feature_list.json         # Scope: your features, one at a time
 ├── init.sh                   # Verification and initialization
-├── project-spec.md           # Conversed spec (spec_partner)
+├── project-spec.md           # Conversed spec (spec_partner) — starts empty
 ├── features/<name>.feature   # Gherkin contract (gherkin_author)
 ├── progress/
 │   ├── current.md            # Active session (live state)
-│   ├── tdd_<name>.md         # TDD log + traceability
-│   ├── judge_<name>.md       # Review verdict
-│   └── mutation_<name>.md    # Mutation report
+│   ├── tdd_<name>.md         # TDD log + traceability   (gitignored)
+│   ├── judge_<name>.md       # Review verdict           (gitignored)
+│   └── mutation_<name>.md    # Mutation report          (gitignored)
 ├── docs/
 │   ├── workflow.md           # The pipeline and the insights of each phase
 │   ├── tdd.md                # The Three Laws of TDD; Red-Green-Refactor
 │   ├── gherkin.md            # How to write .feature; from Gherkin to test
 │   ├── mutation-testing.md   # Why/how; threshold; tools/mutate.py
-│   ├── architecture.md       # What "good work" means
+│   ├── architecture.md       # Your project's quality standard (template)
 │   ├── conventions.md        # Style, names, errors
 │   └── verification.md       # How to prove it works
 ├── tools/
@@ -137,17 +137,15 @@ python3 -m src.cli count
 │   ├── agents/               # craftsman_lead, spec_partner, gherkin_author,
 │   │                         #   tdd_craftsman, judge, mutation_tester
 │   └── settings.json         # Hooks that automate verification
-├── src/
-│   ├── storage.py            # Atomic persistence (JSON)
-│   ├── notes.py              # Domain model
-│   └── cli.py                # argparse interface
-└── tests/
-    ├── test_storage.py
-    ├── test_notes.py
-    └── test_cli.py
+├── src/                      # Your application code (starts empty)
+└── tests/                    # Your tests (starts empty)
 ```
 
-## Lessons this project illustrates
+The `progress/*` reports are regenerable working artifacts — they are
+gitignored (only `progress/current.md` is tracked). The signed contracts
+(`features/*.feature`) and the conversed spec (`project-spec.md`) are tracked.
+
+## Principles this harness enforces
 
 - **The spec is born from a debate**, not a dictation: the `spec_partner`
   questions edge cases and records decisions with their rationale.
@@ -160,4 +158,4 @@ python3 -m src.cli count
 - **Validation is compute-bound**: mutation testing proves the tests bite, at
   the cost of CPU. The limit is no longer typing, it's validating.
 - **State on disk, not in chat**: `project-spec.md`, `features/` and
-  `progress/` survive restarts and blown context windows.
+  `progress/current.md` survive restarts and blown context windows.

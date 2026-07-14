@@ -6,8 +6,8 @@ and checks whether some test fails (KILLED mutant) or all pass
 (SURVIVING mutant). A survivor is a hole in the test net.
 
 Usage:
-    python3 tools/mutate.py src/cli.py
-    python3 tools/mutate.py src/cli.py --max 80
+    python3 tools/mutate.py src/<module>.py
+    python3 tools/mutate.py src/<module>.py --max 80
 
 Design:
 - Works at the *token* level (the `tokenize` module), so it NEVER mutates

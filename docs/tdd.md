@@ -41,8 +41,8 @@ that isn't pushing real code. Scope doesn't inflate.
 ## Granularity: one scenario, one or more cycles
 
 Each `@s` of the `.feature` is translated into at least one Red-Green-
-Refactor cycle. A scenario with several edges (e.g. "empty list prints 0"
-and "three notes prints 3") may need two cycles to force the
+Refactor cycle. A scenario with several edges (e.g. "empty store prints 0"
+and "three items print 3") may need two cycles to force the
 generalization of the code.
 
 ## Mandatory traceability
@@ -52,9 +52,9 @@ The `tdd_craftsman` writes the map in `progress/tdd_<name>.md`:
 
 ```markdown
 ## Traceability
-- @s1 (empty file → 0) → test_count_empty_file
-- @s2 (three notes → 3)    → test_count_several_notes
-- @s3 (doesn't modify the file) → test_count_does_not_mutate_file
+- @s1 (empty store → 0) → test_count_empty_store
+- @s2 (three items → 3)    → test_count_several_items
+- @s3 (doesn't modify the store) → test_count_does_not_mutate_store
 ```
 
 The `judge` rejects if any `@s` is left without a test, and the `mutation_tester`

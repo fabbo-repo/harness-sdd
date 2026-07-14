@@ -1,10 +1,10 @@
 # The Uncle Bob flow (Harness Engineering, craftsman edition)
 
-> This project organizes the `notes-cli` around the process that
+> This harness organizes *your* project around the process that
 > Robert C. Martin describes in his thread: **converse the spec, distill it into
 > Gherkin scenarios, carve the code with strict TDD, prune with judgment and
-> validate with mutation testing**. The app code is trivial on
-> purpose; what the repo teaches is the *process*.
+> validate with mutation testing**. What the repo provides is the *process*,
+> not an application.
 
 ## The pipeline at a glance
 

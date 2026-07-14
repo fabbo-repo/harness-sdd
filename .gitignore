@@ -1,7 +1,12 @@
 __pycache__/
 *.py[cod]
-.notes.json
-.notes_*.json
 *.tmp
 .DS_Store
 .venv/
+
+# Regenerable process artifacts written by the subagents during a run.
+# They are the inter-agent bus, not source of truth — keep them local.
+# The signed contracts (features/*.feature) and the spec (project-spec.md)
+# ARE tracked; only the progress/ reports are ignored.
+progress/*
+!progress/current.md
