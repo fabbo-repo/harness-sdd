@@ -1,88 +1,91 @@
 # Review — feature 7 (cli_recent)
 
-**Veredicto:** APPROVED
+**Verdict:** APPROVED
 
-## Trazabilidad requirements ↔ tests
+## Requirements ↔ tests traceability
 
-- R1 (default <= 5 notas): [x] cubierto por `test_recent_default_limit_orders_by_created_at_desc`
-  (`tests/test_cli.py:166-178`, crea 7 notas, espera exactamente 5 líneas).
-- R2 (`--limit N` con N > 0): [x] cubierto por `test_recent_custom_limit`
-  (`tests/test_cli.py:180-193`, crea 6 notas, `--limit 3`, espera 3 líneas).
-- R3 (orden por `created_at` desc): [x] cubierto por
+- R1 (default <= 5 notes): [x] covered by `test_recent_default_limit_orders_by_created_at_desc`
+  (`tests/test_cli.py:166-178`, creates 7 notes, expects exactly 5 lines).
+- R2 (`--limit N` with N > 0): [x] covered by `test_recent_custom_limit`
+  (`tests/test_cli.py:180-193`, creates 6 notes, `--limit 3`, expects 3 lines).
+- R3 (order by `created_at` desc): [x] covered by
   `test_recent_default_limit_orders_by_created_at_desc`
-  (`tests/test_cli.py:175-178`, valida `timestamps == sorted(reverse=True)` y
-  el orden de títulos `nota-6..nota-2`).
-- R4 (formato `<id>\t<created_at>\t<title>`): [x] cubierto por
-  `test_recent_custom_limit` (`tests/test_cli.py:189-193`, valida 3 campos
-  separados por tab, primer campo numérico, segundo campo ISO 8601).
-- R5 (sin notas: exit 0, stdout vacío): [x] cubierto por
-  `test_recent_empty_outputs_nothing` (`tests/test_cli.py:195-199`, comprueba
+  (`tests/test_cli.py:175-178`, validates `timestamps == sorted(reverse=True)` and
+  the title order `note-6..note-2`).
+- R4 (format `<id>\t<created_at>\t<title>`): [x] covered by
+  `test_recent_custom_limit` (`tests/test_cli.py:189-193`, validates 3 fields
+  separated by tab, first field numeric, second field ISO 8601).
+- R5 (no notes: exit 0, empty stdout): [x] covered by
+  `test_recent_empty_outputs_nothing` (`tests/test_cli.py:195-199`, checks
   `code == 0`, `out == ""`, `err == ""`).
-- R6 (`--limit <= 0`: exit != 0, stderr no vacío): [x] cubierto por
-  `test_recent_invalid_limit_zero` (`tests/test_cli.py:201-213`) y
+- R6 (`--limit <= 0`: exit != 0, non-empty stderr): [x] covered by
+  `test_recent_invalid_limit_zero` (`tests/test_cli.py:201-213`) and
   `test_recent_invalid_limit_negative` (`tests/test_cli.py:215-227`).
-- R7 (`--limit <= 0`: no modifica el archivo): [x] cubierto por los mismos
-  dos tests (comparan `before/after` con `storage.load` y bytes exactos del
-  archivo).
+- R7 (`--limit <= 0`: doesn't modify the file): [x] covered by the same
+  two tests (compare `before/after` with `storage.load` and the file's exact
+  bytes).
 
-## Tasks completas
+## Completed tasks
 
-- T1 (`cmd_recent` en `src/cli.py`): [x]
-- T2 (subparser `recent` en `build_parser`): [x]
+- T1 (`cmd_recent` in `src/cli.py`): [x]
+- T2 (`recent` subparser in `build_parser`): [x]
 - T3 (`test_recent_default_limit_orders_by_created_at_desc`): [x]
 - T4 (`test_recent_custom_limit`): [x]
 - T5 (`test_recent_empty_outputs_nothing`): [x]
 - T6 (`test_recent_invalid_limit_zero` + `test_recent_invalid_limit_negative`): [x]
-- T7 (trazabilidad en `progress/impl_cli_recent.md`): [x]
-- T8 (`./init.sh` verde): [x]
+- T7 (traceability in `progress/impl_cli_recent.md`): [x]
+- T8 (`./init.sh` green): [x]
 
-Todas las tasks de `specs/cli_recent/tasks.md` están marcadas `[x]`.
+All tasks of `specs/cli_recent/tasks.md` *(legacy Kiro-style SDD layout, no
+longer in the repo — replaced by `features/cli_recent.feature`)* are marked `[x]`.
 
-## Cumplimiento de `docs/architecture.md`
+## Compliance with `docs/architecture.md`
 
-- [x] Capas respetadas: `cmd_recent` vive en `src/cli.py` (UI), usa
-  `storage.load()` y no toca `src/notes.py` ni `src/storage.py`.
-- [x] Sin dependencias externas (no hay `requirements.txt`).
-- [x] Errores explícitos: `NoteError("--limit debe ser un entero positivo")`
-  (excepción nombrada, no `None`).
-- [x] Sin IO mezclado en dominio (la feature solo añade lógica de
-  presentación).
-- [x] Mensaje de error va a `stderr` vía el handler `main()` existente
+- [x] Layers respected: `cmd_recent` lives in `src/cli.py` (UI), uses
+  `storage.load()` and doesn't touch `src/notes.py` or `src/storage.py`.
+- [x] No external dependencies (there is no `requirements.txt`).
+- [x] Explicit errors: `NoteError("--limit must be a positive integer")`
+  (named exception, not `None`).
+- [x] No IO mixed into the domain (the feature only adds
+  presentation logic).
+- [x] Error message goes to `stderr` via the existing `main()` handler
   (`src/cli.py:132-134`), exit code 1.
 
-## Cumplimiento de `docs/conventions.md`
+## Compliance with `docs/conventions.md`
 
-- [x] Cabecera de archivo intacta (`src/cli.py:1-2`: docstring +
+- [x] File header intact (`src/cli.py:1-2`: docstring +
   `from __future__ import annotations`).
-- [x] Comillas dobles en toda la implementación nueva.
-- [x] f-strings para interpolación (`src/cli.py:61, 67`).
-- [x] Nombres `snake_case` (`cmd_recent`, `p_recent`).
-- [x] Tests usan `tempfile.TemporaryDirectory()` vía `setUp`/`tearDown`
+- [x] Double quotes throughout the new implementation.
+- [x] f-strings for interpolation (`src/cli.py:61, 67`).
+- [x] `snake_case` names (`cmd_recent`, `p_recent`).
+- [x] Tests use `tempfile.TemporaryDirectory()` via `setUp`/`tearDown`
   (`tests/test_cli.py:16-24`).
-- [x] Nombres de test descriptivos
+- [x] Descriptive test names
   (`test_recent_default_limit_orders_by_created_at_desc`,
   `test_recent_invalid_limit_negative`, etc.).
-- [x] Sin comentarios superfluos.
+- [x] No superfluous comments.
 
 ## Checkpoints
 
-- C1 — Arnés completo: [x] (`./init.sh` exit 0, 4 archivos base presentes,
-  3 docs presentes).
-- C2 — Estado coherente: [x] (sola feature `in_progress` es #7
-  `cli_recent`; `progress/current.md` describe la sesión activa).
-- C3 — Código respeta arquitectura: [x] (`src/` con los 3 módulos previstos,
-  sin `requirements.txt`, sin `print()` de debug ni TODOs).
-- C4 — Verificación real: [x] (`tests/test_cli.py`, `test_notes.py`,
-  `test_storage.py`; 27 tests verdes; usa `TemporaryDirectory`, no mocks).
-- C5 — Sesión: [x] (no hay archivos sospechosos sin trackear; `progress/`
-  refleja la sesión actual; el estado `in_progress` se mantiene a la
-  espera del leader que cierre la feature).
-- C6 — SDD: [x] (feature #7 tiene su carpeta `specs/cli_recent/` con
-  `requirements.md`, `design.md`, `tasks.md`; requirements en EARS
-  estricto; todas las tasks `[x]`; cada `R<n>` cubierto por al menos un
-  test concreto).
+- C1 — Harness complete: [x] (`./init.sh` exit 0, 4 base files present,
+  3 docs present).
+- C2 — Coherent state: [x] (the only `in_progress` feature is #7
+  `cli_recent`; `progress/current.md` describes the active session).
+- C3 — Code respects architecture: [x] (`src/` with the 3 foreseen modules,
+  no `requirements.txt`, no debug `print()` or TODOs).
+- C4 — Real verification: [x] (`tests/test_cli.py`, `test_notes.py`,
+  `test_storage.py`; 27 green tests; uses `TemporaryDirectory`, no mocks).
+- C5 — Session: [x] (there are no suspicious untracked files; `progress/`
+  reflects the current session; the `in_progress` state is kept awaiting
+  the leader who closes the feature).
+- C6 — SDD: [x] (feature #7 has its `specs/cli_recent/` folder with
+  `requirements.md`, `design.md`, `tasks.md`; requirements in strict
+  EARS; all tasks `[x]`; each `R<n>` covered by at least one
+  concrete test). *(That `specs/` folder is the legacy Kiro-style SDD
+  layout, since replaced by the Gherkin flow — `project-spec.md` +
+  `features/cli_recent.feature`; it no longer exists in the repo.)*
 
-## Ejecución
+## Execution
 
 ```
 ./init.sh
@@ -90,7 +93,7 @@ Ran 27 tests in 0.040s
 OK
 ```
 
-## Cambios requeridos
+## Required changes
 
-Ninguno. La feature está lista para que el leader la marque `done` en
+None. The feature is ready for the leader to mark it `done` in
 `feature_list.json`.

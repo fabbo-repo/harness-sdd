@@ -1,40 +1,40 @@
-Feature: Listar las notas más recientes
-  Como usuario quiero ver mis últimas notas sin listar todo el archivo.
+Feature: List the most recent notes
+  As a user I want to see my latest notes without listing the whole file.
 
-  # Contrato heredado: esta feature se cerró antes de adoptar el flujo
-  # Gherkin. El .feature documenta su contrato a posteriori para que el
-  # arnés (init.sh, judge) lo trate igual que al resto.
+  # Legacy contract: this feature was closed before adopting the Gherkin
+  # flow. The .feature documents its contract after the fact so that the
+  # harness (init.sh, judge) treats it like the rest.
 
   @s1
-  Scenario: Por defecto muestra hasta 5 notas, más recientes primero
-    Given un almacén con 7 notas creadas en instantes distintos
-    When ejecuto "python -m src.cli recent"
-    Then la salida lista 5 notas
-    And están ordenadas por created_at descendente
-    And el código de salida es 0
+  Scenario: By default shows up to 5 notes, most recent first
+    Given a store with 7 notes created at distinct instants
+    When I run "python -m src.cli recent"
+    Then the output lists 5 notes
+    And they are ordered by created_at descending
+    And the exit code is 0
 
   @s2
-  Scenario: El flag --limit cambia el número de notas
-    Given un almacén con 7 notas
-    When ejecuto "python -m src.cli recent --limit 3"
-    Then la salida lista exactamente 3 notas
+  Scenario: The --limit flag changes the number of notes
+    Given a store with 7 notes
+    When I run "python -m src.cli recent --limit 3"
+    Then the output lists exactly 3 notes
 
   @s3
-  Scenario: Un límite no positivo es un error
-    Given un almacén con notas
-    When ejecuto "python -m src.cli recent --limit 0"
-    Then stderr contiene un mensaje sobre --limit
-    And el código de salida es distinto de 0
+  Scenario: A non-positive limit is an error
+    Given a store with notes
+    When I run "python -m src.cli recent --limit 0"
+    Then stderr contains a message about --limit
+    And the exit code is non-zero
 
   @s4
-  Scenario: Almacén vacío no imprime nada
-    Given un almacén de notas vacío
-    When ejecuto "python -m src.cli recent"
-    Then la salida estándar está vacía
-    And el código de salida es 0
+  Scenario: Empty store prints nothing
+    Given an empty notes store
+    When I run "python -m src.cli recent"
+    Then standard output is empty
+    And the exit code is 0
 
   @s5
-  Scenario: El formato de cada línea coincide con list
-    Given un almacén con 2 notas
-    When ejecuto "python -m src.cli recent"
-    Then cada línea tiene la forma "<id>\t<created_at>\t<title>"
+  Scenario: The format of each line matches list
+    Given a store with 2 notes
+    When I run "python -m src.cli recent"
+    Then each line has the form "<id>\t<created_at>\t<title>"

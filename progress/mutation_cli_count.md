@@ -1,77 +1,77 @@
-# Mutación — feature #8 `cli_count`
+# Mutation — feature #8 `cli_count`
 
-**Veredicto:** PASS
-**Score (líneas de la feature):** killed/total = 2/2 = 100% (umbral: 100%)
-**Score (archivo completo, informativo):** killed/total = 30/34 = 88.2%
+**Verdict:** PASS
+**Score (feature lines):** killed/total = 2/2 = 100% (threshold: 100%)
+**Score (whole file, informative):** killed/total = 30/34 = 88.2%
 
-## Pre-condiciones verificadas
+## Verified pre-conditions
 
 - Judge: APPROVED (`progress/judge_cli_count.md:2`).
-- `./init.sh`: exit 0, 34 tests verdes.
-- Archivo tocado por la feature: `src/cli.py`, función `cmd_count`
-  (`src/cli.py:90-93`) y subparser `count` (`src/cli.py:130-131`), según
+- `./init.sh`: exit 0, 34 tests green.
+- File touched by the feature: `src/cli.py`, function `cmd_count`
+  (`src/cli.py:90-93`) and `count` subparser (`src/cli.py:130-131`), per
   `progress/tdd_cli_count.md`.
 
-## Comando ejecutado
+## Command run
 
 ```bash
 python3 tools/mutate.py src/cli.py
 ```
 
-34 mutantes válidos (0 descartados por no compilar). Sin truncamiento, sin
-`--max`: se midió el archivo completo.
+34 valid mutants (0 discarded for not compiling). No truncation, no
+`--max`: the whole file was measured.
 
-## Mutantes sobre las LÍNEAS DE LA FEATURE (`cmd_count` + subparser `count`)
+## Mutants over the FEATURE LINES (`cmd_count` + `count` subparser)
 
-Todos MUERTOS. El umbral de 100% sobre líneas nuevas/tocadas se cumple.
+All KILLED. The 100% threshold over new/touched lines is met.
 
-- `src/cli.py:93` número (`'0' -> '1'`) → **muerto** [18/34].
-  `print(len(notes))` mutado a `print(len(notes) + 1)`-equivalente lo matan
-  `test_count_empty_store_prints_zero` (espera `"0\n"`),
-  `test_count_single_note_prints_one` (`"1\n"`) y
+- `src/cli.py:93` number (`'0' -> '1'`) → **killed** [18/34].
+  `print(len(notes))` mutated to `print(len(notes) + 1)`-equivalent is killed by
+  `test_count_empty_store_prints_zero` (expects `"0\n"`),
+  `test_count_single_note_prints_one` (`"1\n"`) and
   `test_count_three_notes_prints_three` (`"3\n"`).
-- `src/cli.py:93` retorno (`'return 0' -> 'return None'`) → **muerto** [31/34].
-  Lo distingue cualquier test que afirma `code == 0` (@s1..@s4).
-- Subparser `count` (`src/cli.py:130-131`): no genera mutantes textuales del
-  catálogo (no hay comparaciones, números ni retornos en esas dos líneas),
-  pero su correcta existencia está cubierta: sin el subparser, los 7 tests de
-  `count` fallarían con `invalid choice: 'count'` (rojo real del ciclo 1,
-  `progress/tdd_cli_count.md:11-13`). Mutar `func=cmd_count` no está en el
-  catálogo del mutador; queda fuera de alcance del umbral textual.
+- `src/cli.py:93` return (`'return 0' -> 'return None'`) → **killed** [31/34].
+  Distinguished by any test that asserts `code == 0` (@s1..@s4).
+- `count` subparser (`src/cli.py:130-131`): generates no textual mutants from
+  the catalog (there are no comparisons, numbers or returns in those two lines),
+  but its correct existence is covered: without the subparser, the 7 `count`
+  tests would fail with `invalid choice: 'count'` (a real red in cycle 1,
+  `progress/tdd_cli_count.md:11-13`). Mutating `func=cmd_count` is not in the
+  mutator's catalog; it falls outside the scope of the textual threshold.
 
-Total mutantes textuales en líneas de la feature: 2 — ambos muertos → 100%.
+Total textual mutants on the feature lines: 2 — both killed → 100%.
 
-## Mutantes sobrevivientes en CÓDIGO HEREDADO (medidos, NO bloquean)
+## Surviving mutants in LEGACY CODE (measured, do NOT block)
 
-Ninguno cae en `cmd_count` ni en su subparser. Se reportan por higiene:
+None fall in `cmd_count` or its subparser. Reported for hygiene:
 
-- `src/cli.py:60` número (`'0' -> '1'`) — función `cmd_recent`
+- `src/cli.py:60` number (`'0' -> '1'`) — function `cmd_recent`
   (`if args.limit <= 0` → `if args.limit <= 1`).
-  Falta: un test que ejerza `recent --limit 1` y verifique que NO lanza
-  `NoteError` (el límite 1 sigue siendo válido). Heredado, fuera de esta feature.
-- `src/cli.py:64` número (`'0' -> '1'`) — función `cmd_recent`
-  (`return 0` del caso "sin notas" → `return 1`).
-  Falta: un test que afirme `code == 0` al pedir `recent` sobre un almacén
-  vacío. Heredado.
-- `src/cli.py:98` palabra (`'True' -> 'False'`) — función `build_parser`
+  Missing: a test that exercises `recent --limit 1` and verifies it does NOT
+  raise `NoteError` (limit 1 is still valid). Legacy, outside this feature.
+- `src/cli.py:64` number (`'0' -> '1'`) — function `cmd_recent`
+  (`return 0` of the "no notes" case → `return 1`).
+  Missing: a test that asserts `code == 0` when requesting `recent` over an
+  empty store. Legacy.
+- `src/cli.py:98` keyword (`'True' -> 'False'`) — function `build_parser`
   (`add_subparsers(..., required=True)` → `required=False`).
-  Falta: un test que invoque la CLI sin subcomando y espere error (exit code
-  no-cero). Infra compartida del parser, no añadida por esta feature. Heredado.
-- `src/cli.py:143` retorno (`'return 1' -> 'return None'`) — función `main`
-  (rama de captura de `NoteError`).
-  Falta: un test que verifique que el código de salida ante un `NoteError`
-  es exactamente `1` (hoy se afirma el stderr pero no el `code == 1` en la
-  ruta de `main`). Heredado.
+  Missing: a test that invokes the CLI without a subcommand and expects an error
+  (non-zero exit code). Shared parser infra, not added by this feature. Legacy.
+- `src/cli.py:143` return (`'return 1' -> 'return None'`) — function `main`
+  (`NoteError` capture branch).
+  Missing: a test that verifies the exit code on a `NoteError` is exactly
+  `1` (today stderr is asserted but not `code == 1` on the `main` path).
+  Legacy.
 
-Ninguno de estos cuatro es un equivalente genuino: todos cambian comportamiento
-observable (códigos de salida o validación de argumentos) y son matables con
-tests adicionales. Pero pertenecen a `cmd_recent`, `build_parser` y `main`, no
-a la feature `cli_count`, así que se miden y no bloquean (regla de
+None of these four is a genuine equivalent: they all change observable
+behavior (exit codes or argument validation) and are killable with additional
+tests. But they belong to `cmd_recent`, `build_parser` and `main`, not to the
+`cli_count` feature, so they are measured and do not block (rule from
 `docs/mutation-testing.md:55-57`).
 
-## Conclusión
+## Conclusion
 
-La feature `cli_count` (`cmd_count` + subparser `count`) tiene 100% de mutantes
-muertos sobre sus líneas nuevas/tocadas. PASS. Los 4 sobrevivientes son
-agujeros en código heredado, candidatos a futuro trabajo del `tdd_craftsman`,
-fuera del alcance de esta feature.
+The `cli_count` feature (`cmd_count` + `count` subparser) has 100% killed
+mutants over its new/touched lines. PASS. The 4 survivors are holes in legacy
+code, candidates for future `tdd_craftsman` work, outside the scope of this
+feature.

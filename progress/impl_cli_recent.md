@@ -1,28 +1,31 @@
-# Implementación — cli_recent
+# Implementation — cli_recent
 
-> Feature #7 del `feature_list.json`. Resumen de la implementación y
-> trazabilidad `R<n> → test` exigida por `docs/specs.md`.
+> Feature #7 of `feature_list.json`. Summary of the implementation and
+> `R<n> → test` traceability required by `docs/specs.md`
+> *(legacy Kiro-style SDD doc, since replaced by the Gherkin flow —
+> `project-spec.md` + `features/cli_recent.feature`; this file no longer
+> exists in the repo).*
 
-## Resumen de cambios
+## Summary of changes
 
 - `src/cli.py`
-  - Nueva función `cmd_recent(args)`: valida `args.limit > 0` (levanta
-    `NoteError` si no), carga las notas con `storage.load()`, las ordena
-    por `created_at` descendente, aplica el slice `[: args.limit]` e
-    imprime cada una con el formato `<id>\t<created_at>\t<title>`.
-  - Nuevo subparser `recent` en `build_parser()` con
-    `--limit` (`type=int`, `default=5`) y `set_defaults(func=cmd_recent)`.
+  - New function `cmd_recent(args)`: validates `args.limit > 0` (raises
+    `NoteError` otherwise), loads the notes with `storage.load()`, orders them
+    by `created_at` descending, applies the slice `[: args.limit]` and
+    prints each one with the format `<id>\t<created_at>\t<title>`.
+  - New `recent` subparser in `build_parser()` with
+    `--limit` (`type=int`, `default=5`) and `set_defaults(func=cmd_recent)`.
 - `tests/test_cli.py`
-  - Nuevo helper `_add_with_created_at` que escribe una nota directamente
-    en el archivo de notas con un `created_at` controlado (necesario
-    porque `Note.new` usa `timespec="seconds"` y las notas creadas en el
-    mismo segundo compartirían marca de tiempo).
-  - 5 tests nuevos (ver tabla más abajo).
+  - New helper `_add_with_created_at` that writes a note directly
+    into the notes file with a controlled `created_at` (necessary
+    because `Note.new` uses `timespec="seconds"` and notes created in the
+    same second would share a timestamp).
+  - 5 new tests (see table below).
 
-No se han tocado `src/notes.py` ni `src/storage.py`, conforme al
+`src/notes.py` and `src/storage.py` were not touched, in accordance with
 `design.md`.
 
-## Trazabilidad
+## Traceability
 
 | Requirement | Test                                                        |
 |-------------|-------------------------------------------------------------|
@@ -34,41 +37,42 @@ No se han tocado `src/notes.py` ni `src/storage.py`, conforme al
 | R6          | `test_recent_invalid_limit_zero`, `test_recent_invalid_limit_negative` |
 | R7          | `test_recent_invalid_limit_zero`, `test_recent_invalid_limit_negative` |
 
-Detalle:
+Detail:
 
 - **R1** (default <= 5): `test_recent_default_limit_orders_by_created_at_desc`
-  crea 7 notas y comprueba que `recent` (sin flags) imprime exactamente 5
-  líneas.
-- **R2** (custom `--limit`): `test_recent_custom_limit` crea 6 notas y
-  comprueba que `recent --limit 3` imprime exactamente 3 líneas.
-- **R3** (orden por `created_at` desc):
-  `test_recent_default_limit_orders_by_created_at_desc` verifica que los
-  timestamps están en orden descendente y que los títulos son los 5 más
-  recientes.
-- **R4** (formato `<id>\t<created_at>\t<title>`): `test_recent_custom_limit`
-  comprueba que cada línea tiene exactamente 3 campos separados por
-  tabulador y que el segundo es un timestamp ISO 8601.
-- **R5** (sin notas: exit 0, stdout vacío): `test_recent_empty_outputs_nothing`
-  ejecuta `recent` sobre un archivo sin notas y verifica `code == 0`,
-  `out == ""` y `err == ""`.
-- **R6** (`--limit <= 0`: exit != 0 y mensaje en stderr):
-  `test_recent_invalid_limit_zero` (con `--limit 0`) y
-  `test_recent_invalid_limit_negative` (con `--limit -3`).
-- **R7** (`--limit <= 0`: no modifica notas): los mismos dos tests
-  comparan el contenido del archivo de notas antes y después (a nivel de
-  bytes y de objeto cargado) y verifican que no cambia.
+  creates 7 notes and checks that `recent` (no flags) prints exactly 5
+  lines.
+- **R2** (custom `--limit`): `test_recent_custom_limit` creates 6 notes and
+  checks that `recent --limit 3` prints exactly 3 lines.
+- **R3** (order by `created_at` desc):
+  `test_recent_default_limit_orders_by_created_at_desc` verifies that the
+  timestamps are in descending order and that the titles are the 5 most
+  recent.
+- **R4** (format `<id>\t<created_at>\t<title>`): `test_recent_custom_limit`
+  checks that each line has exactly 3 fields separated by a
+  tab and that the second one is an ISO 8601 timestamp.
+- **R5** (no notes: exit 0, empty stdout): `test_recent_empty_outputs_nothing`
+  runs `recent` over a file with no notes and verifies `code == 0`,
+  `out == ""` and `err == ""`.
+- **R6** (`--limit <= 0`: exit != 0 and message on stderr):
+  `test_recent_invalid_limit_zero` (with `--limit 0`) and
+  `test_recent_invalid_limit_negative` (with `--limit -3`).
+- **R7** (`--limit <= 0`: doesn't modify notes): the same two tests
+  compare the content of the notes file before and after (at the
+  byte level and at the loaded-object level) and verify it doesn't change.
 
-## Verificación
+## Verification
 
-- `./init.sh` ejecutado al final: **27 tests OK** (5 nuevos + 22
-  preexistentes).
+- `./init.sh` run at the end: **27 tests OK** (5 new + 22
+  pre-existing).
 
 ## Tasks
 
-Todas las tasks T1..T8 de `specs/cli_recent/tasks.md` quedan marcadas
-`[x]` excepto que el reviewer puede pedir cambios.
+All tasks T1..T8 of `specs/cli_recent/tasks.md` *(legacy Kiro-style SDD
+layout, no longer in the repo — replaced by `features/cli_recent.feature`)*
+are marked `[x]` except that the reviewer may request changes.
 
-## Estado
+## Status
 
-Listo para review. **No** se marca `done` en `feature_list.json` —
-queda a cargo del reviewer/leader según el protocolo.
+Ready for review. **Not** marked `done` in `feature_list.json` —
+that is left to the reviewer/leader per the protocol.

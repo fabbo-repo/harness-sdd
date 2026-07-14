@@ -1,75 +1,74 @@
-# Prueba de mutación — validar que los tests muerden
+# Mutation testing — validate that the tests bite
 
 > "Mutation testing is resource-heavy, but the ROI on code correctness is
 > worth every cycle." / "We are shifting from a bottleneck of human typing
 > speed to a bottleneck of compute-driven validation."
 
-## El problema que resuelve
+## The problem it solves
 
-Una suite verde dice "el código no explota con estas entradas". **No** dice
-"los tests fallarían si el código estuviera mal". Un test sin asserts
-fuertes pasa siempre y no protege nada.
+A green suite says "the code doesn't blow up with these inputs". It does
+**not** say "the tests would fail if the code were wrong". A test without
+strong asserts always passes and protects nothing.
 
-La prueba de mutación lo mide al revés: introduce un defecto pequeño en el
-código (un *mutante*) y observa la suite.
+Mutation testing measures it the other way around: it introduces a small
+defect into the code (a *mutant*) and observes the suite.
 
-- Si **algún test falla** → el mutante está **muerto** (killed). Bien: la
-  red atrapó el defecto.
-- Si **todos los tests pasan** → el mutante **sobrevive** (survived). Mal:
-  hay un agujero. Falta un assert o un caso.
+- If **some test fails** → the mutant is **killed**. Good: the net caught
+  the defect.
+- If **all tests pass** → the mutant **survives**. Bad: there's a hole.
+  An assert or a case is missing.
 
-**Puntuación de mutación** = `killed / total`. Cuanto más alta, más muerden
-los tests.
+**Mutation score** = `killed / total`. The higher, the more the tests bite.
 
-## El mutador de este repo: `tools/mutate.py`
+## This repo's mutator: `tools/mutate.py`
 
-Sin dependencias externas (mantenemos `requirements.txt` vacío). El script:
+No external dependencies (we keep `requirements.txt` empty). The script:
 
-1. Lee un archivo de `src/`.
-2. Aplica, **uno a uno**, un catálogo de mutaciones textuales:
+1. Reads a file from `src/`.
+2. Applies, **one by one**, a catalog of textual mutations:
 
-   | Categoría    | Ejemplo de mutación                          |
+   | Category     | Example mutation                             |
    |--------------|----------------------------------------------|
-   | Comparación  | `<=` → `<`, `==` → `!=`, `>` → `>=`          |
-   | Aritmética   | `+` → `-`, `- 1` → `+ 1`                      |
-   | Booleano     | `and` → `or`, `True` → `False`               |
-   | Constantes   | `0` → `1`, `1` → `0`                          |
-   | Retorno      | `return <expr>` → `return None`              |
+   | Comparison   | `<=` → `<`, `==` → `!=`, `>` → `>=`          |
+   | Arithmetic   | `+` → `-`, `- 1` → `+ 1`                      |
+   | Boolean      | `and` → `or`, `True` → `False`               |
+   | Constants    | `0` → `1`, `1` → `0`                          |
+   | Return       | `return <expr>` → `return None`              |
 
-3. Por cada mutante: escribe el archivo mutado, corre
-   `python3 -m unittest discover -s tests -q`, restaura el original.
-4. Reporta `total`, `killed`, `survived`, `score` y la lista de
-   sobrevivientes (archivo:línea + mutación).
+3. For each mutant: writes the mutated file, runs
+   `python3 -m unittest discover -s tests -q`, restores the original.
+4. Reports `total`, `killed`, `survived`, `score` and the list of
+   survivors (file:line + mutation).
 
 ```bash
-python3 tools/mutate.py src/cli.py            # mutar un archivo
-python3 tools/mutate.py src/cli.py --max 80   # acotar nº de mutantes
+python3 tools/mutate.py src/cli.py            # mutate a file
+python3 tools/mutate.py src/cli.py --max 80   # cap the number of mutants
 ```
 
-El script **restaura siempre** el archivo original, incluso si lo
-interrumpes (maneja la limpieza en `finally`).
+The script **always restores** the original file, even if you interrupt
+it (it handles cleanup in `finally`).
 
-## El umbral
+## The threshold
 
-- Por defecto, la feature exige **100% de mutantes muertos sobre las líneas
-  nuevas o tocadas** por esa feature.
-- Para código heredado no tocado por la feature, no se exige umbral en esta
-  rama (se mide, no se bloquea).
-- Un mutante **equivalente** (no cambia el comportamiento observable; p. ej.
-  mutar un valor que nunca se usa) puede excluirse, pero **solo** con
-  justificación explícita escrita en `progress/mutation_<name>.md`. Abusar
-  de esta vía es hacer trampa al juez.
+- By default, the feature requires **100% killed mutants over the new or
+  touched lines** of that feature.
+- For legacy code not touched by the feature, no threshold is required on this
+  branch (it is measured, not blocked).
+- An **equivalent** mutant (doesn't change the observable behavior; e.g.
+  mutating a value that is never used) may be excluded, but **only** with
+  explicit justification written in `progress/mutation_<name>.md`. Abusing
+  this route is cheating the judge.
 
-## Quién hace qué
+## Who does what
 
-- El `mutation_tester` **mide** y reporta. No edita código.
-- Un mutante sobreviviente es trabajo del `tdd_craftsman`: escribe el test
-  rojo que lo mata y vuelve a pasar por el `judge`. Es el ciclo de mejora
-  compute-bound: el CPU encuentra el hueco, el artesano lo tapa con un test.
+- The `mutation_tester` **measures** and reports. It doesn't edit code.
+- A surviving mutant is the `tdd_craftsman`'s job: write the red test
+  that kills it and go through the `judge` again. It is the compute-bound
+  improvement cycle: the CPU finds the hole, the craftsman plugs it with a test.
 
-## Por qué vale el coste
+## Why it's worth the cost
 
-Reejecutar toda la suite por cada mutante es caro. Pero ese es justo el
-desplazamiento que describe el hilo: el límite ya no es lo rápido que
-teclea un humano, sino cuánta validación puede pagar tu CPU. La corrección
-del código es el retorno, y compensa cada ciclo.
+Re-running the whole suite for each mutant is expensive. But that is exactly
+the shift the thread describes: the limit is no longer how fast a human
+types, but how much validation your CPU can afford. Code correctness is the
+return, and it pays off every cycle.

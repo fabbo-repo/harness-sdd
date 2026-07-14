@@ -1,67 +1,67 @@
-# Convenciones de código
+# Code conventions
 
-> Homogeneidad extrema. La IA predice mejor cuando el repositorio se parece
-> a sí mismo en todas partes.
+> Extreme homogeneity. The AI predicts better when the repository looks
+> like itself everywhere.
 
-## Estilo Python
+## Python style
 
-- **Versión:** Python 3.9+ (sintaxis `list[str]` permitida).
-- **Formato:** PEP 8. Líneas máximo 100 caracteres.
-- **Imports:** stdlib primero, luego locales. Una línea por módulo.
-- **Strings:** comillas dobles `"..."` siempre. Comillas simples solo
-  para escapar comillas dobles dentro.
-- **f-strings** para interpolación. Nada de `.format()` ni `%`.
+- **Version:** Python 3.9+ (`list[str]` syntax allowed).
+- **Format:** PEP 8. Lines at most 100 characters.
+- **Imports:** stdlib first, then local. One line per module.
+- **Strings:** double quotes `"..."` always. Single quotes only
+  to escape double quotes inside.
+- **f-strings** for interpolation. No `.format()` or `%`.
 
-## Nombres
+## Names
 
-| Tipo                    | Convención        | Ejemplo               |
+| Type                    | Convention        | Example               |
 |-------------------------|-------------------|-----------------------|
-| Módulos                 | `snake_case`      | `notes.py`            |
-| Clases                  | `PascalCase`      | `Note`                |
-| Funciones / variables   | `snake_case`      | `load_notes`          |
-| Constantes              | `UPPER_SNAKE`     | `DEFAULT_NOTES_PATH`  |
-| Privadas                | prefijo `_`       | `_atomic_write`       |
+| Modules                 | `snake_case`      | `notes.py`            |
+| Classes                 | `PascalCase`      | `Note`                |
+| Functions / variables   | `snake_case`      | `load_notes`          |
+| Constants               | `UPPER_SNAKE`     | `DEFAULT_NOTES_PATH`  |
+| Private                 | `_` prefix        | `_atomic_write`       |
 
-## Estructura de archivo
+## File structure
 
-Cada archivo en `src/` empieza con:
+Each file in `src/` starts with:
 
 ```python
-"""Una línea describiendo el propósito del módulo."""
+"""One line describing the module's purpose."""
 from __future__ import annotations
 
-# imports stdlib
+# stdlib imports
 import json
 import os
 
-# imports locales
+# local imports
 from src.notes import Note
 ```
 
 ## Tests
 
-- Un archivo de test por módulo: `tests/test_<módulo>.py`.
-- Una clase `Test<Cosa>(unittest.TestCase)` por unidad lógica.
-- Cada test usa un `tempfile.TemporaryDirectory()` y limpia tras de sí.
-- Nombres de test descriptivos: `test_load_returns_empty_when_file_missing`.
+- One test file per module: `tests/test_<module>.py`.
+- One `Test<Thing>(unittest.TestCase)` class per logical unit.
+- Each test uses a `tempfile.TemporaryDirectory()` and cleans up after itself.
+- Descriptive test names: `test_load_returns_empty_when_file_missing`.
 
-## Manejo de errores
+## Error handling
 
-Excepciones del dominio en `src/notes.py`:
+Domain exceptions in `src/notes.py`:
 
 ```python
 class NoteError(Exception):
-    """Base para errores del dominio."""
+    """Base for domain errors."""
 
 class NoteNotFound(NoteError):
-    """Se lanza cuando se busca una nota inexistente."""
+    """Raised when a non-existent note is looked up."""
 ```
 
-El CLI captura excepciones del dominio, imprime mensaje a `stderr` y sale
-con código 1. Nunca propaga stack traces al usuario.
+The CLI captures domain exceptions, prints a message to `stderr` and exits
+with code 1. It never propagates stack traces to the user.
 
-## Comentarios
+## Comments
 
-Por defecto **no** se escriben. Solo se permiten cuando explican un *por qué*
-no obvio (p. ej. workaround documentado, invariante sutil). Los nombres deben
-hacer el resto.
+By default they are **not** written. They are only allowed when they explain a
+non-obvious *why* (e.g. a documented workaround, a subtle invariant). Names should
+do the rest.

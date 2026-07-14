@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-"""Mutador mínimo y sin dependencias para prueba de mutación.
+"""Minimal, dependency-free mutator for mutation testing.
 
-Introduce un defecto pequeño en un archivo de `src/`, corre la suite de
-tests y comprueba si algún test falla (mutante MUERTO) o si todos pasan
-(mutante SOBREVIVIENTE). Un sobreviviente es un agujero en la red de tests.
+Introduces a small defect into a file in `src/`, runs the test suite
+and checks whether some test fails (KILLED mutant) or all pass
+(SURVIVING mutant). A survivor is a hole in the test net.
 
-Uso:
+Usage:
     python3 tools/mutate.py src/cli.py
     python3 tools/mutate.py src/cli.py --max 80
 
-Diseño:
-- Trabaja a nivel de *token* (módulo `tokenize`), así que NUNCA muta el
-  contenido de strings ni comentarios: solo operadores, palabras clave,
-  números y sentencias `return`.
-- Descarta los mutantes que no compilan (no inflan la puntuación).
-- Restaura SIEMPRE el archivo original, incluso ante Ctrl-C (bloque
-  `finally`).
+Design:
+- Works at the *token* level (the `tokenize` module), so it NEVER mutates
+  the contents of strings or comments: only operators, keywords,
+  numbers and `return` statements.
+- Discards mutants that don't compile (they don't inflate the score).
+- ALWAYS restores the original file, even on Ctrl-C (`finally`
+  block).
 
-Ver `docs/mutation-testing.md`.
+See `docs/mutation-testing.md`.
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ import subprocess
 import sys
 import tokenize
 
-# Mutaciones de operador: token OP -> reemplazo.
+# Operator mutations: OP token -> replacement.
 OP_MUTATIONS = {
     "<=": "<",
     ">=": ">",
@@ -39,7 +39,7 @@ OP_MUTATIONS = {
     "-": "+",
 }
 
-# Mutaciones de palabra/constante: token NAME -> reemplazo.
+# Keyword/constant mutations: NAME token -> replacement.
 NAME_MUTATIONS = {
     "and": "or",
     "or": "and",
@@ -51,7 +51,7 @@ TEST_CMD = [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-q"]
 
 
 class Mutant:
-    """Una única mutación: reemplaza un span (línea, col) del fuente."""
+    """A single mutation: replaces a span (line, col) of the source."""
 
     def __init__(self, row: int, col_start: int, col_end: int,
                  original: str, replacement: str, label: str):
@@ -65,7 +65,8 @@ class Mutant:
     def apply(self, lines: list[str]) -> str:
         out = list(lines)
         line = out[self.row - 1]
-        out[self.row - 1] = line[: self.col_start] + self.replacement + line[self.col_end:]
+        out[self.row - 1] = line[: self.col_start] + \
+            self.replacement + line[self.col_end:]
         return "".join(out)
 
     def describe(self, path: str) -> str:
@@ -73,7 +74,7 @@ class Mutant:
 
 
 def _int_mutation(literal: str) -> str | None:
-    """Mutación de un literal entero: n -> n+1 (y 0 -> 1, sin tocar floats)."""
+    """Integer literal mutation: n -> n+1 (and 0 -> 1, without touching floats)."""
     try:
         value = int(literal, 0)
     except ValueError:
@@ -89,7 +90,7 @@ def generate_mutants(source: str) -> list[Mutant]:
         return mutants
 
     for tok in tokens:
-        # tokens multilínea quedan fuera (no aplican a estas mutaciones)
+        # multi-line tokens are left out (these mutations don't apply)
         if tok.start[0] != tok.end[0]:
             continue
         row = tok.start[0]
@@ -98,17 +99,17 @@ def generate_mutants(source: str) -> list[Mutant]:
 
         if tok.type == tokenize.OP and text in OP_MUTATIONS:
             mutants.append(Mutant(row, col_start, col_end, text,
-                                  OP_MUTATIONS[text], "operador"))
+                                  OP_MUTATIONS[text], "operator"))
         elif tok.type == tokenize.NAME and text in NAME_MUTATIONS:
             mutants.append(Mutant(row, col_start, col_end, text,
-                                  NAME_MUTATIONS[text], "palabra"))
+                                  NAME_MUTATIONS[text], "keyword"))
         elif tok.type == tokenize.NUMBER:
             repl = _int_mutation(text)
             if repl is not None:
                 mutants.append(Mutant(row, col_start, col_end, text,
-                                      repl, "número"))
+                                      repl, "number"))
 
-    # Mutación de retorno: `return <expr>` -> `return None`.
+    # Return mutation: `return <expr>` -> `return None`.
     lines = source.splitlines(keepends=True)
     for idx, raw in enumerate(lines, start=1):
         stripped = raw.lstrip()
@@ -118,11 +119,11 @@ def generate_mutants(source: str) -> list[Mutant]:
         if rest in ("", "None"):
             continue
         indent = len(raw) - len(stripped)
-        # reemplaza desde 'return' hasta el final del contenido de la línea
+        # replace from 'return' to the end of the line's content
         content = raw.rstrip("\n")
         mutants.append(
             Mutant(idx, indent, len(content),
-                   content[indent:], "return None", "retorno")
+                   content[indent:], "return None", "return")
         )
     return mutants
 
@@ -136,26 +137,26 @@ def compiles(source: str, path: str) -> bool:
 
 
 def run_tests() -> bool:
-    """Devuelve True si la suite pasa (returncode 0)."""
+    """Returns True if the suite passes (returncode 0)."""
     result = subprocess.run(TEST_CMD, stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL)
     return result.returncode == 0
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Prueba de mutación mínima.")
-    parser.add_argument("path", help="Archivo de src/ a mutar.")
+    parser = argparse.ArgumentParser(description="Minimal mutation testing.")
+    parser.add_argument("path", help="File in src/ to mutate.")
     parser.add_argument("--max", type=int, default=100,
-                        help="Máximo de mutantes a evaluar (default 100).")
+                        help="Maximum number of mutants to evaluate (default 100).")
     args = parser.parse_args(argv)
 
     with open(args.path, "r", encoding="utf-8") as f:
         original = f.read()
     lines = original.splitlines(keepends=True)
 
-    # Cordura: la suite debe estar VERDE antes de mutar.
+    # Sanity check: the suite must be GREEN before mutating.
     if not run_tests():
-        print("[FAIL] La suite está roja sin mutar. Arregla los tests primero.",
+        print("[FAIL] The suite is red without mutating. Fix the tests first.",
               file=sys.stderr)
         return 2
 
@@ -171,18 +172,18 @@ def main(argv: list[str] | None = None) -> int:
     killed: list[Mutant] = []
     survived: list[Mutant] = []
 
-    print(f"── Mutando {args.path} ─ {len(valid)} mutantes válidos "
-          f"({skipped_noncompile} descartados por no compilar)")
+    print(f"── Mutating {args.path} ─ {len(valid)} valid mutants "
+          f"({skipped_noncompile} discarded for not compiling)")
     try:
         for i, m in enumerate(valid, start=1):
             with open(args.path, "w", encoding="utf-8") as f:
                 f.write(m.apply(lines))
             if run_tests():
                 survived.append(m)
-                mark = "SOBREVIVE"
+                mark = "SURVIVES"
             else:
                 killed.append(m)
-                mark = "muerto"
+                mark = "killed"
             print(f"  [{i}/{len(valid)}] {mark:9} {m.describe(args.path)}")
     finally:
         with open(args.path, "w", encoding="utf-8") as f:
@@ -191,20 +192,20 @@ def main(argv: list[str] | None = None) -> int:
     total = len(valid)
     score = (len(killed) / total * 100) if total else 100.0
 
-    print("\n── Resumen ──────────────────────────────────────")
+    print("\n── Summary ──────────────────────────────────────")
     print(f"  total:    {total}")
     print(f"  killed:   {len(killed)}")
     print(f"  survived: {len(survived)}")
     print(f"  score:    {score:.1f}%")
     if truncated:
-        print(f"  [WARN] {truncated} mutantes válidos NO evaluados "
-              f"(límite --max={args.max}). Sube --max para cobertura total.")
+        print(f"  [WARN] {truncated} valid mutants NOT evaluated "
+              f"(limit --max={args.max}). Raise --max for full coverage.")
     if survived:
-        print("\n  Mutantes sobrevivientes (agujeros en la red):")
+        print("\n  Surviving mutants (holes in the net):")
         for m in survived:
             print(f"   - {m.describe(args.path)}")
 
-    # Exit code: 0 si no sobrevive ninguno, 1 si sobrevive alguno.
+    # Exit code: 0 if none survive, 1 if any survives.
     return 0 if not survived else 1
 
 

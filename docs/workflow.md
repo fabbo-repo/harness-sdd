@@ -1,94 +1,94 @@
-# El flujo Uncle Bob (Harness Engineering, edición artesano)
+# The Uncle Bob flow (Harness Engineering, craftsman edition)
 
-> Esta rama reorganiza el mismo `notes-cli` alrededor del proceso que
-> Robert C. Martin describe en su hilo: **conversar la spec, destilarla en
-> escenarios Gherkin, tallar el código con TDD estricto, podar con juicio y
-> validar con prueba de mutación**. El código de la app es trivial a
-> propósito; lo que enseña el repo es el *proceso*.
+> This branch reorganizes the same `notes-cli` around the process that
+> Robert C. Martin describes in his thread: **converse the spec, distill it into
+> Gherkin scenarios, carve the code with strict TDD, prune with judgment and
+> validate with mutation testing**. The app code is trivial on
+> purpose; what the repo teaches is the *process*.
 
-## El pipeline de un vistazo
+## The pipeline at a glance
 
 ```
 pending
-  │  spec_partner — CONVERSACIÓN  ───────────────►  project-spec.md
+  │  spec_partner — CONVERSATION  ───────────────►  project-spec.md
   │      "We debate various topics and decisions."
   │
-  │  gherkin_author — DESTILACIÓN ───────────────►  features/<name>.feature
+  │  gherkin_author — DISTILLATION ──────────────►  features/<name>.feature
   │      ".feature files from the project-spec.md"
   │
-  ▼  ⏸  PUERTA HUMANA: el humano aprueba los escenarios (el contrato)
+  ▼  ⏸  HUMAN GATE: the human approves the scenarios (the contract)
   │
 in_progress
-  │  tdd_craftsman — ROJO → VERDE → REFACTOR ────►  src/ + tests/
-  │      un test a la vez; las Tres Leyes del TDD
+  │  tdd_craftsman — RED → GREEN → REFACTOR ─────►  src/ + tests/
+  │      one test at a time; the Three Laws of TDD
   │
   │  judge — REVIEW ─────────────────────────────►  progress/judge_<name>.md
   │      "The review step is the whole game. Agents draft, judgment prunes."
   │
-  │  mutation_tester — MUTACIÓN ─────────────────►  progress/mutation_<name>.md
+  │  mutation_tester — MUTATION ─────────────────►  progress/mutation_<name>.md
   │      "Mutation testing is resource-heavy, but the ROI is worth every cycle."
   ▼
 done
 ```
 
-Una sola feature a la vez. Una sola puerta de aprobación humana: sobre los
-escenarios Gherkin, **antes** de escribir producción.
+One feature at a time. One single human approval gate: over the Gherkin
+scenarios, **before** writing production code.
 
-## Por qué este orden (los insights del hilo)
+## Why this order (the insights from the thread)
 
-### 1. La spec nace de una conversación, no de un dictado
-El humano no entrega un documento cerrado. Debate con el `spec_partner`:
-casos límite, contratos de salida, alternativas descartadas. El resultado,
-`project-spec.md`, es el acuerdo razonado — incluidas las **decisiones** y
-su porqué. Una spec sin debate esconde los huecos; el debate los saca.
+### 1. The spec is born from a conversation, not a dictation
+The human doesn't hand over a closed document. They debate with the `spec_partner`:
+edge cases, output contracts, discarded alternatives. The result,
+`project-spec.md`, is the reasoned agreement — including the **decisions** and
+their rationale. A spec without debate hides the gaps; the debate brings them out.
 
-### 2. Gherkin convierte la prosa en un contrato ejecutable
+### 2. Gherkin turns prose into an executable contract
 > "Once the project-spec.md is done, I have it create a set of .feature
 > files."
 
-Cada comportamiento se vuelve un `Scenario` con `Given/When/Then`
-verificable. Esto es lo que el humano firma. A partir de aquí, la
-ambigüedad es un bug del contrato, no del código. Ver `docs/gherkin.md`.
+Each behavior becomes a `Scenario` with a verifiable `Given/When/Then`.
+This is what the human signs. From here on,
+ambiguity is a bug in the contract, not in the code. See `docs/gherkin.md`.
 
-### 3. La puerta humana va sobre el contrato, no sobre el código
-Aprobar tarde (cuando ya hay código) es caro. Aprobar el `.feature` es
-barato y es el punto de máximo apalancamiento: un escenario mal definido
-arrastra todo el TDD. El `craftsman_lead` **para** aquí y espera.
+### 3. The human gate is over the contract, not over the code
+Approving late (when there is already code) is expensive. Approving the `.feature` is
+cheap and is the point of maximum leverage: a poorly defined scenario
+drags all of the TDD down. The `craftsman_lead` **stops** here and waits.
 
-### 4. TDD estricto: un test a la vez
+### 4. Strict TDD: one test at a time
 > "single test followed by code (TDD)"
 
-No se escriben todos los tests por adelantado. Se vive el ciclo pequeño:
-un test rojo → el mínimo verde → refactor en verde. Las Tres Leyes en
-`docs/tdd.md`. El código que ningún test pidió no existe.
+Not all tests are written up front. You live the small cycle:
+a red test → the minimal green → refactor while green. The Three Laws in
+`docs/tdd.md`. The code that no test asked for doesn't exist.
 
-### 5. El review es el juego entero
+### 5. Review is the whole game
 > "Agents draft, judgment prunes."
 
-Generar borradores es barato (el modelo teclea infinito). El valor escaso
-es el **juicio** que decide qué sobrevive. El `judge` no edita: poda. Si un
-escenario no tiene test, o hay código que nadie pidió, rechaza.
+Generating drafts is cheap (the model types infinitely). The scarce value
+is the **judgment** that decides what survives. The `judge` doesn't edit: it prunes. If a
+scenario has no test, or there is code no one asked for, it rejects.
 
-### 6. La validación es el nuevo cuello de botella, y es compute-bound
+### 6. Validation is the new bottleneck, and it's compute-bound
 > "Raw computer power is the limiting factor." / "Mutation testing is
 > resource-heavy, but the ROI on code correctness is worth every cycle."
 
-Una suite verde solo dice que el código no explota, no que los tests
-sirvan. La prueba de mutación introduce defectos y exige que algún test
-falle. Es cara en CPU —reejecuta la suite por cada mutante— pero es la
-medida real de si la red atrapa peces. Ver `docs/mutation-testing.md`.
+A green suite only says the code doesn't blow up, not that the tests
+are useful. Mutation testing introduces defects and demands that some test
+fail. It's expensive in CPU —it re-runs the suite for each mutant— but it's the
+real measure of whether the net catches fish. See `docs/mutation-testing.md`.
 
-## Mapa de artefactos (quién escribe qué)
+## Artifact map (who writes what)
 
-| Archivo                          | Lo escribe        | Contiene                                            |
+| File                             | Written by        | Contains                                            |
 |----------------------------------|-------------------|-----------------------------------------------------|
-| `project-spec.md`                | spec_partner      | Spec conversada: propósito, contrato, decisiones    |
-| `features/<name>.feature`        | gherkin_author    | Escenarios Gherkin `@s1..@sn` (el contrato firmado) |
-| `src/`, `tests/`                 | tdd_craftsman     | Código y tests, tallados por TDD                    |
-| `progress/tdd_<name>.md`         | tdd_craftsman     | Bitácora de ciclos + mapa `@s → test`               |
-| `progress/judge_<name>.md`       | judge             | Veredicto de review + checkpoints                   |
-| `progress/mutation_<name>.md`    | mutation_tester   | Score de mutación + mutantes sobrevivientes         |
+| `project-spec.md`                | spec_partner      | Conversed spec: purpose, contract, decisions        |
+| `features/<name>.feature`        | gherkin_author    | Gherkin scenarios `@s1..@sn` (the signed contract)  |
+| `src/`, `tests/`                 | tdd_craftsman     | Code and tests, carved by TDD                       |
+| `progress/tdd_<name>.md`         | tdd_craftsman     | Cycle log + `@s → test` map                         |
+| `progress/judge_<name>.md`       | judge             | Review verdict + checkpoints                        |
+| `progress/mutation_<name>.md`    | mutation_tester   | Mutation score + surviving mutants                  |
 | `feature_list.json`              | craftsman_lead / tdd_craftsman | `pending → spec_ready → in_progress → done` |
 
-Regla anti-teléfono-descompuesto: los subagentes escriben en disco y
-devuelven una línea de referencia. El contenido no circula por chat.
+Anti-broken-telephone rule: the subagents write to disk and
+return a line of reference. The content doesn't circulate through chat.

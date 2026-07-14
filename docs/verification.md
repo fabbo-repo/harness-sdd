@@ -1,42 +1,42 @@
-# Verificación — Cómo demostrar que el trabajo funciona
+# Verification — How to prove the work works
 
-> Regla de oro: **el agente no dice "funciona", lo demuestra**.
-> Toda feature termina con evidencia ejecutable, no con afirmaciones.
+> Golden rule: **the agent doesn't say "it works", it proves it**.
+> Every feature ends with executable evidence, not with claims.
 
-## Niveles de verificación
+## Verification levels
 
-### Nivel 1 — Tests unitarios (obligatorio)
+### Level 1 — Unit tests (mandatory)
 
-Toda función pública en `src/` tiene al menos un test en `tests/` que:
+Every public function in `src/` has at least one test in `tests/` that:
 
-1. Cubre el camino feliz.
-2. Cubre al menos un camino de error si la función puede fallar.
+1. Covers the happy path.
+2. Covers at least one error path if the function can fail.
 
-Comando:
+Command:
 ```bash
 python3 -m unittest discover -s tests -v
 ```
 
-### Nivel 2 — Test de integración del CLI (obligatorio para features de UI)
+### Level 2 — CLI integration test (mandatory for UI features)
 
-Las features que añaden comandos al CLI se verifican ejecutando el CLI real
-contra un archivo temporal:
+Features that add commands to the CLI are verified by running the real CLI
+against a temporary file:
 
 ```python
 import subprocess, tempfile, os
 with tempfile.TemporaryDirectory() as d:
     env = {**os.environ, "NOTES_FILE": os.path.join(d, "notes.json")}
     out = subprocess.check_output(
-        ["python3", "-m", "src.cli", "add", "hola", "--body", "mundo"],
+        ["python3", "-m", "src.cli", "add", "hello", "--body", "world"],
         env=env, text=True,
     )
     assert "id=" in out
 ```
 
-### Nivel 3 — Smoke test manual (opcional pero recomendado)
+### Level 3 — Manual smoke test (optional but recommended)
 
-Antes de cerrar la sesión, ejecuta un flujo end-to-end con un archivo
-temporal en `/tmp`:
+Before closing the session, run an end-to-end flow with a temporary
+file in `/tmp`:
 
 ```bash
 NOTES_FILE=/tmp/notes_demo.json python3 -m src.cli add "test" --body "x"
@@ -44,48 +44,48 @@ NOTES_FILE=/tmp/notes_demo.json python3 -m src.cli list
 rm /tmp/notes_demo.json
 ```
 
-### Nivel 4 — Trazabilidad de escenarios (obligatorio para features con `"sdd": true`)
+### Level 4 — Scenario traceability (mandatory for features with `"sdd": true`)
 
-Cada escenario `@s` de `features/<name>.feature` debe poder mapearse a al
-menos un test concreto en `tests/`. El `judge` rechaza si falta cobertura.
+Each `@s` scenario of `features/<name>.feature` must be mappable to at
+least one concrete test in `tests/`. The `judge` rejects if coverage is missing.
 
-El `tdd_craftsman` documenta el mapa en `progress/tdd_<name>.md`:
+The `tdd_craftsman` documents the map in `progress/tdd_<name>.md`:
 
 ```markdown
-## Trazabilidad
-- @s1 (archivo vacío → 0) → test_count_archivo_vacio
-- @s2 (varias notas → 3)  → test_count_varias_notas
-- @s3 (no muta el archivo) → test_count_no_muta_archivo
+## Traceability
+- @s1 (empty file → 0) → test_count_empty_file
+- @s2 (several notes → 3)  → test_count_several_notes
+- @s3 (doesn't mutate the file) → test_count_does_not_mutate_file
 ```
 
-### Nivel 5 — Prueba de mutación (obligatorio para cerrar una feature sdd)
+### Level 5 — Mutation testing (mandatory to close an sdd feature)
 
-Una suite verde no basta: hay que demostrar que los tests **muerden**. El
-`mutation_tester` corre el mutador y exige el umbral de
+A green suite is not enough: you must prove that the tests **bite**. The
+`mutation_tester` runs the mutator and demands the threshold in
 `docs/mutation-testing.md`:
 
 ```bash
 python3 tools/mutate.py src/cli.py
 ```
 
-Todo mutante sobreviviente se mata con un test nuevo o se justifica como
-equivalente en `progress/mutation_<name>.md`.
+Every surviving mutant is killed with a new test or justified as
+equivalent in `progress/mutation_<name>.md`.
 
-## Anti-patrones (no hacer)
+## Anti-patterns (do not do)
 
-- ❌ "He añadido el comando, debería funcionar." → falta test ejecutable.
-- ❌ Test que solo verifica que la función no lanza excepción. → tiene que
-  comprobar el resultado concreto.
-- ❌ `mock` del filesystem. → usa `tempfile.TemporaryDirectory()` real.
-- ❌ Marcar la feature como `done` sin pasar `./init.sh`.
+- ❌ "I added the command, it should work." → an executable test is missing.
+- ❌ A test that only verifies the function doesn't raise an exception. → it has
+  to check the concrete result.
+- ❌ `mock` of the filesystem. → use a real `tempfile.TemporaryDirectory()`.
+- ❌ Marking the feature as `done` without passing `./init.sh`.
 
-## Verificación final antes de cerrar
+## Final verification before closing
 
 ```bash
-./init.sh                       # debe terminar con [OK] Entorno listo
-python3 tools/mutate.py src/cli.py   # score por encima del umbral
+./init.sh                       # must finish with [OK] Environment ready
+python3 tools/mutate.py src/cli.py   # score above the threshold
 ```
 
-Si `./init.sh` está rojo o sobreviven mutantes sin justificar, **no**
-marques nada como `done`. Anota el bloqueo en `progress/current.md` con
-estado `blocked` en `feature_list.json`.
+If `./init.sh` is red or mutants survive without justification, do **not**
+mark anything as `done`. Note the blocker in `progress/current.md` with
+a `blocked` state in `feature_list.json`.

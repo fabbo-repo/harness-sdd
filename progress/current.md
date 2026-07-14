@@ -1,20 +1,20 @@
-# Sesión actual
+# Current session
 
-> Este archivo se vacía al cerrar cada sesión y se mueve a `history.md`.
-> Mientras trabajas, **mantenlo actualizado en tiempo real**, no al final.
+> This file is emptied when each session is closed and moved to `history.md`.
+> While you work, **keep it updated in real time**, not at the end.
 
-- **Feature en curso:** _ninguna_
-- **Inicio:** _—_
-- **Agente:** _—_
+- **Feature in progress:** _none_
+- **Start:** _—_
+- **Agent:** _—_
 
 ## Plan
 
 _—_
 
-## Bitácora
+## Log
 
 _—_
 
-## Próximo paso
+## Next step
 
 _—_

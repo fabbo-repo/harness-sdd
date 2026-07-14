@@ -1,68 +1,68 @@
-# TDD estricto — la disciplina del `tdd_craftsman`
+# Strict TDD — the `tdd_craftsman`'s discipline
 
 > "Do you let it write all tests up front, then code or single test
-> followed by code (TDD)?" — La respuesta de esta rama: **single test
-> followed by code**. Un test a la vez. Nunca toda la batería por delante.
+> followed by code (TDD)?" — This branch's answer: **single test
+> followed by code**. One test at a time. Never the whole battery up front.
 
-## Las Tres Leyes del TDD
+## The Three Laws of TDD
 
-1. **No escribes código de producción** salvo para hacer pasar un test que
-   está fallando.
-2. **No escribes más de un test del necesario para fallar** — y que no
-   compile o no importe cuenta como fallar.
-3. **No escribes más código de producción del necesario** para pasar el
-   único test que falla.
+1. **You don't write production code** except to make a failing test
+   pass.
+2. **You don't write more of a test than is enough to fail** — and not
+   compiling or not importing counts as failing.
+3. **You don't write more production code than is enough** to pass the
+   single failing test.
 
-El efecto: nunca tienes código sin un test que lo justifique, ni un test
-que no esté empujando código real. El alcance no se infla.
+The effect: you never have code without a test to justify it, nor a test
+that isn't pushing real code. Scope doesn't inflate.
 
-## El ciclo, en pequeño y repetido
+## The cycle, small and repeated
 
 ```
    ┌──────────────────────────────────────────────┐
    │                                                │
    ▼                                                │
- ROJO            VERDE                 REFACTOR      │
- escribe UN  →   mínimo código    →    limpia con   ─┘
- test que        para ponerlo          la barra
- falla           verde                 verde
+ RED             GREEN                REFACTOR       │
+ write ONE   →   minimal code    →    clean up with ─┘
+ failing         to make it            the green
+ test            green                 bar
 ```
 
-- **ROJO** — el test deriva del siguiente escenario `@s` del `.feature`.
-  Verifícalo fallando de verdad (`python3 -m unittest …`). Un test que
-  pasa a la primera no demuestra nada: ajústalo o sospecha del montaje.
-- **VERDE** — la implementación **mínima**. Está permitido hacer trampa
-  (devolver una constante) si aún no hay test que lo desmienta. El
-  siguiente ciclo forzará la generalización. Esto es deliberado.
-- **REFACTOR** — solo en verde. Elimina duplicación, mejora nombres,
-  parte funciones largas. Vuelve a correr los tests tras cada cambio. Si
-  algo se pone rojo, no estás refactorizando: estás cambiando comportamiento.
+- **RED** — the test derives from the next `@s` scenario of the `.feature`.
+  Verify it fails for real (`python3 -m unittest …`). A test that
+  passes on the first try proves nothing: adjust it or be suspicious of the setup.
+- **GREEN** — the **minimal** implementation. Cheating is allowed
+  (returning a constant) if there is no test yet that disproves it. The
+  next cycle will force the generalization. This is deliberate.
+- **REFACTOR** — only while green. Remove duplication, improve names,
+  split long functions. Re-run the tests after each change. If
+  something turns red, you're not refactoring: you're changing behavior.
 
-## Granularidad: un escenario, uno o más ciclos
+## Granularity: one scenario, one or more cycles
 
-Cada `@s` del `.feature` se traduce en al menos un ciclo Rojo-Verde-
-Refactor. Un escenario con varias aristas (p. ej. "lista vacía imprime 0"
-y "tres notas imprime 3") puede necesitar dos ciclos para forzar la
-generalización del código.
+Each `@s` of the `.feature` is translated into at least one Red-Green-
+Refactor cycle. A scenario with several edges (e.g. "empty list prints 0"
+and "three notes prints 3") may need two cycles to force the
+generalization of the code.
 
-## Trazabilidad obligatoria
+## Mandatory traceability
 
-Al cerrar, cada `@s` debe estar cubierto por al menos un test concreto.
-El `tdd_craftsman` escribe el mapa en `progress/tdd_<name>.md`:
+On close, each `@s` must be covered by at least one concrete test.
+The `tdd_craftsman` writes the map in `progress/tdd_<name>.md`:
 
 ```markdown
-## Trazabilidad
-- @s1 (archivo vacío → 0) → test_count_archivo_vacio
-- @s2 (tres notas → 3)    → test_count_varias_notas
-- @s3 (no modifica el archivo) → test_count_no_muta_archivo
+## Traceability
+- @s1 (empty file → 0) → test_count_empty_file
+- @s2 (three notes → 3)    → test_count_several_notes
+- @s3 (doesn't modify the file) → test_count_does_not_mutate_file
 ```
 
-El `judge` rechaza si algún `@s` queda sin test, y el `mutation_tester`
-rechaza si los tests existen pero no muerden.
+The `judge` rejects if any `@s` is left without a test, and the `mutation_tester`
+rejects if the tests exist but don't bite.
 
-## Olores que el `judge` busca
+## Smells the `judge` looks for
 
-- Código de producción que **ningún test rojo** pidió (viola la Ley 1).
-- Tests escritos "a futuro" para escenarios que aún no toca.
-- Refactors hechos en rojo.
-- Funciones largas o nombres opacos que sobrevivieron al paso REFACTOR.
+- Production code that **no red test** asked for (violates Law 1).
+- Tests written "for the future" for scenarios not yet reached.
+- Refactors done while red.
+- Long functions or opaque names that survived the REFACTOR step.

@@ -1,84 +1,84 @@
 # TDD — feature #8 `cli_count`
 
-Contrato: `features/cli_count.feature` (@s1..@s7).
-Disciplina: Las Tres Leyes del TDD, un test a la vez, Rojo→Verde→Refactor.
-Patrón de test imitado: `tests/test_cli.TestCli` (tempfile.TemporaryDirectory +
-patch de `storage.DEFAULT_NOTES_PATH`, helper `_run` con redirect_stdout/stderr).
+Contract: `features/cli_count.feature` (@s1..@s7).
+Discipline: The Three Laws of TDD, one test at a time, Red→Green→Refactor.
+Imitated test pattern: `tests/test_cli.TestCli` (tempfile.TemporaryDirectory +
+patch of `storage.DEFAULT_NOTES_PATH`, `_run` helper with redirect_stdout/stderr).
 
-## Bitácora de ciclos
+## Cycle log
 
-### Ciclo 1 — @s1 (almacén vacío → "0")
-- **ROJO:** `test_count_empty_store_prints_zero`. Falla con
-  `argparse.ArgumentError: invalid choice: 'count'` (no existe el subcomando).
-- **VERDE (mínimo):** `cmd_count` con `print(0)` + subparser `count`. Trampa
-  deliberada con constante (no hay aún test que la desmienta).
-- **REFACTOR:** nada que limpiar; función de una línea.
+### Cycle 1 — @s1 (empty store → "0")
+- **RED:** `test_count_empty_store_prints_zero`. Fails with
+  `argparse.ArgumentError: invalid choice: 'count'` (the subcommand doesn't exist).
+- **GREEN (minimal):** `cmd_count` with `print(0)` + `count` subparser. Deliberate
+  fake with a constant (there is no test yet that disproves it).
+- **REFACTOR:** nothing to clean up; a one-line function.
 
-### Ciclo 2 — @s2 (almacén inexistente → "0")
-- **ROJO/test:** `test_count_missing_store_prints_zero` (afirma que el archivo
-  NO existe antes de ejecutar). Pasa de inmediato porque la constante `0`
-  cubre también este caso; comportamiento ya correcto. La generalización la
-  forzará @s3.
-- **VERDE:** sin cambio de producción.
-- **REFACTOR:** nada.
+### Cycle 2 — @s2 (non-existent store → "0")
+- **RED/test:** `test_count_missing_store_prints_zero` (asserts the file
+  does NOT exist before running). Passes immediately because the constant `0`
+  also covers this case; behavior already correct. Generalization will be
+  forced by @s3.
+- **GREEN:** no production change.
+- **REFACTOR:** nothing.
 
-### Ciclo 3 — @s3 (una nota → "1")
-- **ROJO:** `test_count_single_note_prints_one`. Falla: la constante `0` ya no
-  basta (esperaba `"1\n"`, obtuvo `"0\n"`).
-- **VERDE (mínimo):** generalizar `cmd_count` a
+### Cycle 3 — @s3 (one note → "1")
+- **RED:** `test_count_single_note_prints_one`. Fails: the constant `0` is no
+  longer enough (expected `"1\n"`, got `"0\n"`).
+- **GREEN (minimal):** generalize `cmd_count` to
   `notes = storage.load(); print(len(notes))`.
-- **REFACTOR:** función ya corta y con nombres claros; nada que tocar.
+- **REFACTOR:** function already short and with clear names; nothing to touch.
 
-### Ciclo 4 — @s4 (tres notas → "3", el número justo)
-- **ROJO/test:** `test_count_three_notes_prints_three`. Pasa ya: la
-  implementación se generalizó en el ciclo 3. El escenario es un caso distinto
-  del contrato ("N exacto, no ≥1") y merece su propio test de guarda.
-- **VERDE:** sin cambio.
-- **REFACTOR:** nada.
+### Cycle 4 — @s4 (three notes → "3", the precise number)
+- **RED/test:** `test_count_three_notes_prints_three`. Already passes: the
+  implementation was generalized in cycle 3. The scenario is a case distinct
+  from the contract ("exact N, not ≥1") and deserves its own guard test.
+- **GREEN:** no change.
+- **REFACTOR:** nothing.
 
-### Ciclo 5 — @s5 (entero pelado, sin "Total")
-- **ROJO/test:** `test_count_output_is_bare_integer_without_text`. Pasa por
-  construcción (`print(len(...))` no emite texto). Guarda contra una regresión
-  hacia `Total: N`.
-- **VERDE:** sin cambio.
-- **REFACTOR:** nada.
+### Cycle 5 — @s5 (bare integer, no "Total")
+- **RED/test:** `test_count_output_is_bare_integer_without_text`. Passes by
+  construction (`print(len(...))` emits no text). Guards against a regression
+  toward `Total: N`.
+- **GREEN:** no change.
+- **REFACTOR:** nothing.
 
-### Ciclo 6 — @s6 (no muta el archivo, byte a byte)
-- **ROJO/test:** `test_count_does_not_mutate_store`. Pasa: `cmd_count` nunca
-  llama a `storage.save`. Guarda real: una implementación que escribiese
-  fallaría la comparación de bytes.
-- **VERDE:** sin cambio.
-- **REFACTOR:** nada.
+### Cycle 6 — @s6 (doesn't mutate the file, byte by byte)
+- **RED/test:** `test_count_does_not_mutate_store`. Passes: `cmd_count` never
+  calls `storage.save`. A real guard: an implementation that wrote would
+  fail the byte comparison.
+- **GREEN:** no change.
+- **REFACTOR:** nothing.
 
-### Ciclo 7 — @s7 (idempotente en almacén inexistente; sigue sin existir)
-- **ROJO/test:** `test_count_does_not_create_store_when_missing`. Pasa:
-  `storage.load` de un archivo ausente devuelve `[]` sin crearlo. Guarda
-  contra una implementación que tocase el archivo.
-- **VERDE:** sin cambio.
-- **REFACTOR:** nada.
+### Cycle 7 — @s7 (idempotent on a non-existent store; still doesn't exist)
+- **RED/test:** `test_count_does_not_create_store_when_missing`. Passes:
+  `storage.load` of an absent file returns `[]` without creating it. Guards
+  against an implementation that touched the file.
+- **GREEN:** no change.
+- **REFACTOR:** nothing.
 
-## Nota sobre las Tres Leyes
+## Note on the Three Laws
 
-Solo dos ciclos (1 y 3) exigieron código de producción nuevo, y cada uno tras
-un test rojo: `print(0)` (constante, Ley 3) y luego `print(len(storage.load()))`
-(generalización forzada por @s3). Los ciclos 2, 4-7 añaden tests de guarda que
-codifican aristas distintas del contrato; pasan por construcción y no
-introducen producción "a futuro". No hubo refactors en rojo.
+Only two cycles (1 and 3) required new production code, and each after
+a red test: `print(0)` (constant, Law 3) and then `print(len(storage.load()))`
+(generalization forced by @s3). Cycles 2, 4-7 add guard tests that
+encode distinct edges of the contract; they pass by construction and don't
+introduce "for the future" production code. There were no refactors while red.
 
-## Trazabilidad @s → test
+## Traceability @s → test
 
-- @s1 (almacén vacío → "0")              → `test_count_empty_store_prints_zero`
-- @s2 (almacén inexistente → "0")        → `test_count_missing_store_prints_zero`
-- @s3 (una nota → "1")                   → `test_count_single_note_prints_one`
-- @s4 (tres notas → "3" exacto)          → `test_count_three_notes_prints_three`
-- @s5 (entero pelado, sin "Total")       → `test_count_output_is_bare_integer_without_text`
-- @s6 (no muta el archivo, byte a byte)  → `test_count_does_not_mutate_store`
-- @s7 (idempotente, archivo sigue ausente) → `test_count_does_not_create_store_when_missing`
+- @s1 (empty store → "0")                 → `test_count_empty_store_prints_zero`
+- @s2 (non-existent store → "0")          → `test_count_missing_store_prints_zero`
+- @s3 (one note → "1")                    → `test_count_single_note_prints_one`
+- @s4 (three notes → exact "3")           → `test_count_three_notes_prints_three`
+- @s5 (bare integer, no "Total")          → `test_count_output_is_bare_integer_without_text`
+- @s6 (doesn't mutate the file, byte by byte) → `test_count_does_not_mutate_store`
+- @s7 (idempotent, file still absent)     → `test_count_does_not_create_store_when_missing`
 
-## Estado final
+## Final state
 
-- `./init.sh` VERDE de punta a punta (34 tests, OK).
-- Implementación: `cmd_count` + subparser `count` en `src/cli.py`.
-- 7 tests nuevos en `tests/test_cli.py` (uno por escenario).
-- Feature #8 sigue `in_progress`. NO marcada `done` (pendiente judge +
+- `./init.sh` GREEN end to end (34 tests, OK).
+- Implementation: `cmd_count` + `count` subparser in `src/cli.py`.
+- 7 new tests in `tests/test_cli.py` (one per scenario).
+- Feature #8 still `in_progress`. NOT marked `done` (pending judge +
   mutation_tester).

@@ -1,36 +1,36 @@
-# Informe del implementer — Feature #6 `cli_edit`
+# Implementer report — Feature #6 `cli_edit`
 
-## Archivos modificados
+## Modified files
 
-- `src/cli.py` — añadido `cmd_edit` (load → mutar → save → print) y subparser
-  `edit` con `id` (int posicional) y flags opcionales `--title` / `--body`.
-- `tests/test_cli.py` — añadidos 5 tests: éxito de cada flag por separado,
-  ambos flags juntos, id inexistente y ausencia de flags.
-- `feature_list.json` — feature #6 pasada de `in_progress` a `done`.
+- `src/cli.py` — added `cmd_edit` (load → mutate → save → print) and `edit`
+  subparser with `id` (positional int) and optional `--title` / `--body` flags.
+- `tests/test_cli.py` — added 5 tests: success of each flag separately,
+  both flags together, non-existent id and absence of flags.
+- `feature_list.json` — feature #6 moved from `in_progress` to `done`.
 
-## Diseño
+## Design
 
-- **Ausencia de flags:** chequeo temprano `if args.title is None and
-  args.body is None: raise NoteError("debes pasar --title y/o --body")`.
-  Los argumentos por defecto son `None` (no `""`), porque cadena vacía es un
-  valor legítimo para `--body`. `NoteError` lo captura el handler genérico
-  ya existente en `main()`, que imprime a stderr y sale con código 1.
-- **Id inexistente:** itero `notes` por índice; si no encuentro el `id`,
-  lanzo `NoteNotFound` (mismo patrón que `cmd_show` y `cmd_delete`).
-- **Inmutabilidad:** la nota se reemplaza construyendo una nueva instancia
-  `Note(...)` con `id` y `created_at` preservados y los campos cambiados
-  tomados de `args` solo cuando no son `None`. Luego `notes[i] =
-  updated.to_dict()` y `storage.save(notes)`. `Note` sigue siendo `frozen`
-  porque nunca mutamos la instancia original.
-- **Confirmación:** `print(f"editada id={args.id}")` (los tests buscan
-  `id=1`, sigue el patrón de `cmd_delete` que imprime `id=...`).
-- Sin nuevas dependencias, sin nuevas capas, sin tocar `notes.py` ni
+- **Absence of flags:** early check `if args.title is None and
+  args.body is None: raise NoteError("you must pass --title and/or --body")`.
+  The default arguments are `None` (not `""`), because an empty string is a
+  legitimate value for `--body`. `NoteError` is captured by the existing
+  generic handler in `main()`, which prints to stderr and exits with code 1.
+- **Non-existent id:** I iterate `notes` by index; if I don't find the `id`,
+  I raise `NoteNotFound` (same pattern as `cmd_show` and `cmd_delete`).
+- **Immutability:** the note is replaced by building a new `Note(...)`
+  instance with `id` and `created_at` preserved and the changed fields
+  taken from `args` only when they are not `None`. Then `notes[i] =
+  updated.to_dict()` and `storage.save(notes)`. `Note` stays `frozen`
+  because we never mutate the original instance.
+- **Confirmation:** `print(f"edited id={args.id}")` (the tests look for
+  `id=1`, following the pattern of `cmd_delete` which prints `id=...`).
+- No new dependencies, no new layers, without touching `notes.py` or
   `storage.py`.
 
-## Output del último `./init.sh`
+## Output of the last `./init.sh`
 
 ```
-── 4. Ejecutando tests ─────────────────────────────────
+── 4. Running tests ────────────────────────────────────
 test_add_creates_note_and_prints_id (test_cli.TestCli.test_add_creates_note_and_prints_id) ... ok
 test_delete_missing_id_returns_error (test_cli.TestCli.test_delete_missing_id_returns_error) ... ok
 test_delete_removes_note_and_confirms (test_cli.TestCli.test_delete_removes_note_and_confirms) ... ok
@@ -58,14 +58,14 @@ test_save_then_load_roundtrip (test_storage.TestStorage.test_save_then_load_roun
 Ran 22 tests in 0.020s
 
 OK
-[OK]    Todos los tests pasan
+[OK]    All tests pass
 
-── 5. Resumen ──────────────────────────────────────────
-[OK]    Entorno listo. Puedes empezar a trabajar.
+── 5. Summary ──────────────────────────────────────────
+[OK]    Environment ready. You can start working.
 ```
 
-22 tests verdes (17 previos + 5 nuevos para `cli_edit`).
+22 green tests (17 previous + 5 new for `cli_edit`).
 
-## Estado final en `feature_list.json`
+## Final state in `feature_list.json`
 
-Feature #6 `cli_edit` → `status: "done"`. No quedan features en `in_progress`.
+Feature #6 `cli_edit` → `status: "done"`. No features remain in `in_progress`.

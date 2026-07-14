@@ -1,47 +1,47 @@
-# Arquitectura — Qué significa "hacer un buen trabajo"
+# Architecture — What "doing good work" means
 
-> Este documento define el estándar de calidad. Los agentes revisores
-> evalúan código contra este archivo. Si no está aquí, no es un requisito.
+> This document defines the quality standard. The reviewer agents
+> evaluate code against this file. If it's not here, it's not a requirement.
 
-## Principios
+## Principles
 
-1. **Capas claras.** El proyecto tiene tres capas y solo tres:
-   - `storage.py` — persistencia (JSON en disco).
-   - `notes.py` — modelo de dominio (`Note`).
-   - `cli.py` — interfaz de usuario (argparse).
-   No introducir capas adicionales (servicios, repositorios, ORMs) hasta que
-   haya una razón concreta documentada en `feature_list.json`.
+1. **Clear layers.** The project has three layers and only three:
+   - `storage.py` — persistence (JSON on disk).
+   - `notes.py` — domain model (`Note`).
+   - `cli.py` — user interface (argparse).
+   Do not introduce additional layers (services, repositories, ORMs) until
+   there is a concrete reason documented in `feature_list.json`.
 
-2. **Sin dependencias externas.** Solo stdlib de Python. Si una feature
-   requiere una dependencia, primero se discute (estado `blocked`).
+2. **No external dependencies.** Only Python's stdlib. If a feature
+   requires a dependency, it is discussed first (`blocked` state).
 
-3. **Errores explícitos.** Las funciones que pueden fallar (id no existe,
-   archivo corrupto) lanzan excepciones nombradas, no devuelven `None`.
+3. **Explicit errors.** Functions that can fail (id doesn't exist,
+   corrupt file) raise named exceptions, they don't return `None`.
 
-4. **Inmutabilidad por defecto.** `Note` es un `@dataclass(frozen=True)`.
-   Modificar = crear una nueva instancia.
+4. **Immutability by default.** `Note` is a `@dataclass(frozen=True)`.
+   Modifying = creating a new instance.
 
-5. **Atomicidad en disco.** Toda escritura a `notes.json` se hace primero
-   en un archivo temporal y luego `os.replace()`. Nunca dejar el archivo
-   a medio escribir.
+5. **Atomicity on disk.** Every write to `notes.json` is done first
+   to a temp file and then `os.replace()`. Never leave the file
+   half-written.
 
-## Flujo de datos
+## Data flow
 
 ```
-usuario  ─→  cli.py (argparse)
+user     ─→  cli.py (argparse)
               │
-              ├─ construye Note con notes.Note.new(...)
+              ├─ builds a Note with notes.Note.new(...)
               │
               └─→  storage.load() / storage.save()
                        │
-                       └─→  .notes.json (en CWD)
+                       └─→  .notes.json (in CWD)
 ```
 
-## Qué NO hacer
+## What NOT to do
 
-- No usar `print()` para errores. Usa `sys.stderr` y exit code != 0.
-- No mezclar IO con lógica de dominio dentro de `notes.py`.
-- No leer/escribir el archivo en cada operación dentro de un bucle.
-  Carga al inicio, modifica en memoria, guarda al final.
-- No añadir un sistema de configuración. La ruta del archivo se pasa
-  explícitamente o usa la constante por defecto.
+- Don't use `print()` for errors. Use `sys.stderr` and a non-zero exit code.
+- Don't mix IO with domain logic inside `notes.py`.
+- Don't read/write the file on every operation inside a loop.
+  Load at the start, modify in memory, save at the end.
+- Don't add a configuration system. The file path is passed
+  explicitly or uses the default constant.

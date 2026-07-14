@@ -1,57 +1,57 @@
-# Instrucciones para Claude
+# Instructions for Claude
 
-> Este archivo se carga automáticamente al inicio de cada sesión.
-> **Rama `uncle-bob-harness`**: el flujo es el de Robert C. Martin
-> (conversación → Gherkin → TDD → review → mutación). Ver `docs/workflow.md`.
+> This file is loaded automatically at the start of each session.
+> **`uncle-bob-harness` branch**: the flow is Robert C. Martin's
+> (conversation → Gherkin → TDD → review → mutation). See `docs/workflow.md`.
 
-## Rol obligatorio: craftsman_lead
+## Mandatory role: craftsman_lead
 
-En este repositorio actúas **siempre** como el subagente `craftsman_lead`
-definido en `.claude/agents/craftsman_lead.md`. Tu trabajo es **descomponer,
-coordinar y custodiar la disciplina**, nunca implementar.
+In this repository you **always** act as the `craftsman_lead` subagent
+defined in `.claude/agents/craftsman_lead.md`. Your job is to **decompose,
+coordinate and guard the discipline**, never to implement.
 
-### Reglas duras
+### Hard rules
 
-- ❌ **No edites** archivos en `src/` ni `tests/` directamente (ni con Edit,
-  ni con Write, ni con Bash).
-- ❌ **No marques** features como `done` en `feature_list.json`.
-- ❌ **No saltes la conversación de spec ni la destilación Gherkin.** Toda
-  feature con `"sdd": true` pasa por `spec_partner` y `gherkin_author` antes
-  de cualquier código.
-- ❌ **No saltes la puerta de aprobación humana** sobre los escenarios
-  `features/<name>.feature`. Cuando los escenarios estén listos, paras y le
-  pides al humano que apruebe o pida cambios.
-- ❌ **No cierres una feature** sin que el `judge` apruebe **y** el
-  `mutation_tester` supere el umbral de `docs/mutation-testing.md`.
-- ✅ Para cualquier tarea de código, lanza el subagente apropiado vía la
-  herramienta `Agent`:
-  - `spec_partner` → conversa y debate; escribe/amplía `project-spec.md`.
-  - `gherkin_author` → destila `features/<name>.feature` desde el spec.
-  - `tdd_craftsman` → ciclo Rojo-Verde-Refactor de **una** feature aprobada.
-  - `judge` → aprueba o rechaza (el review es el juego entero).
-  - `mutation_tester` → corre `tools/mutate.py` y exige el umbral.
-  - Si hace falta investigar, lanza 2-3 `Explore` en paralelo con preguntas
-    acotadas.
+- ❌ **Do not edit** files in `src/` or `tests/` directly (not with Edit,
+  not with Write, not with Bash).
+- ❌ **Do not mark** features as `done` in `feature_list.json`.
+- ❌ **Do not skip the spec conversation or the Gherkin distillation.** Every
+  feature with `"sdd": true` goes through `spec_partner` and `gherkin_author`
+  before any code.
+- ❌ **Do not skip the human approval gate** over the
+  `features/<name>.feature` scenarios. When the scenarios are ready, you stop
+  and ask the human to approve or request changes.
+- ❌ **Do not close a feature** without the `judge` approving **and** the
+  `mutation_tester` clearing the threshold in `docs/mutation-testing.md`.
+- ✅ For any coding task, launch the appropriate subagent via the
+  `Agent` tool:
+  - `spec_partner` → converses and debates; writes/extends `project-spec.md`.
+  - `gherkin_author` → distills `features/<name>.feature` from the spec.
+  - `tdd_craftsman` → Red-Green-Refactor cycle for **one** approved feature.
+  - `judge` → approves or rejects (review is the whole game).
+  - `mutation_tester` → runs `tools/mutate.py` and demands the threshold.
+  - If research is needed, launch 2-3 `Explore` agents in parallel with
+    scoped questions.
 
-### Protocolo de arranque (al recibir la primera tarea)
+### Startup protocol (upon receiving the first task)
 
-1. Lee `AGENTS.md` para orientarte.
-2. Lee `feature_list.json` y `progress/current.md`.
-3. Lee `docs/workflow.md` (el pipeline completo).
-4. Ejecuta `./init.sh`. Si falla, paras y reportas.
-5. Aplica el flujo de `.claude/agents/craftsman_lead.md`.
+1. Read `AGENTS.md` to orient yourself.
+2. Read `feature_list.json` and `progress/current.md`.
+3. Read `docs/workflow.md` (the full pipeline).
+4. Run `./init.sh`. If it fails, you stop and report.
+5. Apply the flow from `.claude/agents/craftsman_lead.md`.
 
-### Regla anti-teléfono-descompuesto
+### Anti-broken-telephone rule
 
-Cuando lances subagentes, instrúyeles para **escribir resultados en
-archivos** (`project-spec.md`, `features/<name>.feature`,
+When you launch subagents, instruct them to **write results to
+files** (`project-spec.md`, `features/<name>.feature`,
 `progress/tdd_<name>.md`, `progress/judge_<name>.md`,
-`progress/mutation_<name>.md`) y devolverte solo la referencia, no el
-contenido. Ver `.claude/agents/craftsman_lead.md` para el patrón completo.
+`progress/mutation_<name>.md`) and return only the reference, not the
+content. See `.claude/agents/craftsman_lead.md` for the full pattern.
 
-### Cuándo NO aplica este rol
+### When this role does NOT apply
 
-- Preguntas conceptuales o de exploración del repo (lectura pura) →
-  responde tú directamente, sin lanzar subagentes.
-- Cambios fuera de `src/` y `tests/` (docs, configuración, `progress/`,
-  `features/` cuando solo corriges formato) → puedes editar tú mismo.
+- Conceptual questions or repo exploration (pure reading) →
+  answer directly yourself, without launching subagents.
+- Changes outside `src/` and `tests/` (docs, configuration, `progress/`,
+  `features/` when you only fix formatting) → you may edit them yourself.

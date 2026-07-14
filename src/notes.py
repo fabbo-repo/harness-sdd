@@ -1,4 +1,4 @@
-"""Modelo de dominio: la Nota."""
+"""Domain model: the Note."""
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
@@ -6,11 +6,11 @@ from datetime import datetime, timezone
 
 
 class NoteError(Exception):
-    """Base para errores del dominio."""
+    """Base for domain errors."""
 
 
 class NoteNotFound(NoteError):
-    """Se lanza cuando se busca una nota inexistente."""
+    """Raised when a non-existent note is looked up."""
 
 
 @dataclass(frozen=True)

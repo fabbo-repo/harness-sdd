@@ -1,4 +1,4 @@
-"""Tests para src/notes.py."""
+"""Tests for src/notes.py."""
 from __future__ import annotations
 
 import unittest
@@ -8,10 +8,10 @@ from src.notes import Note
 
 class TestNote(unittest.TestCase):
     def test_new_assigns_id_one_when_no_existing(self) -> None:
-        note = Note.new("hola", "mundo", existing=[])
+        note = Note.new("hello", "world", existing=[])
         self.assertEqual(note.id, 1)
-        self.assertEqual(note.title, "hola")
-        self.assertEqual(note.body, "mundo")
+        self.assertEqual(note.title, "hello")
+        self.assertEqual(note.body, "world")
         self.assertTrue(note.created_at)
 
     def test_new_increments_id(self) -> None:
@@ -27,7 +27,7 @@ class TestNote(unittest.TestCase):
     def test_note_is_frozen(self) -> None:
         note = Note.new("a", "b", existing=[])
         with self.assertRaises(Exception):
-            note.title = "otro"  # type: ignore[misc]
+            note.title = "another"  # type: ignore[misc]
 
 
 if __name__ == "__main__":

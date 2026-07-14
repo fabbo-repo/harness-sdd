@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# init.sh — Verificación e inicialización del entorno
+# init.sh — Environment verification and initialization
 #
-# Este script lo ejecuta el agente al COMENZAR una sesión y antes de
-# declarar cualquier tarea como `done`. Si falla, la sesión no debe avanzar.
+# This script is run by the agent when STARTING a session and before
+# declaring any task as `done`. If it fails, the session must not proceed.
 #
-# Salida esperada: códigos de salida claros y bloques marcados con [OK]/[FAIL].
+# Expected output: clear exit codes and blocks marked with [OK]/[FAIL].
 
 set -u
 RED='\033[0;31m'
@@ -18,37 +18,37 @@ fail()  { printf "${RED}[FAIL]${NC}  %s\n" "$1"; }
 
 EXIT_CODE=0
 
-echo "── 1. Verificando entorno ─────────────────────────────"
+echo "── 1. Verifying environment ───────────────────────────"
 
-# Python disponible
+# Python available
 if ! command -v python3 >/dev/null 2>&1; then
-  fail "python3 no está instalado"
+  fail "python3 is not installed"
   exit 1
 fi
 ok "python3 -> $(python3 --version)"
 
-# Versión mínima 3.9 (dataclasses + typing moderno)
+# Minimum version 3.9 (dataclasses + modern typing)
 PY_VERSION_OK=$(python3 -c 'import sys; print(int(sys.version_info >= (3, 9)))')
 if [ "$PY_VERSION_OK" != "1" ]; then
-  fail "Se requiere Python >= 3.9"
+  fail "Python >= 3.9 is required"
   exit 1
 fi
-ok "Versión de Python compatible"
+ok "Compatible Python version"
 
 echo ""
-echo "── 2. Verificando archivos base del arnés ──────────────"
+echo "── 2. Verifying harness base files ─────────────────────"
 
 for f in AGENTS.md feature_list.json progress/current.md docs/architecture.md docs/conventions.md docs/verification.md docs/workflow.md tools/mutate.py CHECKPOINTS.md; do
   if [ ! -f "$f" ]; then
-    fail "Falta archivo base: $f"
+    fail "Missing base file: $f"
     EXIT_CODE=1
   else
-    ok "Existe $f"
+    ok "$f exists"
   fi
 done
 
 echo ""
-echo "── 3. Validando feature_list.json y escenarios ────────"
+echo "── 3. Validating feature_list.json and scenarios ──────"
 
 python3 - <<'PY'
 import json, os, sys
@@ -57,57 +57,57 @@ try:
     valid = {"pending", "spec_ready", "in_progress", "done", "blocked"}
     in_progress = [f for f in data["features"] if f["status"] == "in_progress"]
     if len(in_progress) > 1:
-        print(f"[FAIL]  Hay {len(in_progress)} features en in_progress (máximo 1)")
+        print(f"[FAIL]  There are {len(in_progress)} features in in_progress (maximum 1)")
         sys.exit(1)
     requires_spec = {"spec_ready", "in_progress", "done"}
     spec_errors = []
     for f in data["features"]:
         if f["status"] not in valid:
-            print(f"[FAIL]  Estado inválido en feature {f['id']}: {f['status']}")
+            print(f"[FAIL]  Invalid status in feature {f['id']}: {f['status']}")
             sys.exit(1)
         if f.get("sdd") and f["status"] in requires_spec:
             feature_file = os.path.join("features", f["name"] + ".feature")
             if not os.path.isfile(feature_file):
                 spec_errors.append(
-                    f"feature {f['id']} ({f['name']}) en {f['status']} "
-                    f"sin {feature_file}"
+                    f"feature {f['id']} ({f['name']}) in {f['status']} "
+                    f"without {feature_file}"
                 )
     if spec_errors:
         for e in spec_errors:
             print(f"[FAIL]  {e}")
         sys.exit(1)
-    print(f"[OK]    feature_list.json válido ({len(data['features'])} features)")
-    print(f"[OK]    Escenarios .feature presentes para features sdd no-pending")
+    print(f"[OK]    feature_list.json valid ({len(data['features'])} features)")
+    print(f"[OK]    .feature scenarios present for non-pending sdd features")
 except SystemExit:
     raise
 except Exception as e:
-    print(f"[FAIL]  feature_list.json o specs inválidos: {e}")
+    print(f"[FAIL]  feature_list.json or specs invalid: {e}")
     sys.exit(1)
 PY
 
 if [ $? -ne 0 ]; then EXIT_CODE=1; fi
 
 echo ""
-echo "── 4. Ejecutando tests ─────────────────────────────────"
+echo "── 4. Running tests ────────────────────────────────────"
 
 if [ -d "tests" ]; then
   if python3 -m unittest discover -s tests -v 2>&1; then
-    ok "Todos los tests pasan"
+    ok "All tests pass"
   else
-    fail "Hay tests rotos"
+    fail "There are broken tests"
     EXIT_CODE=1
   fi
 else
-  warn "Carpeta tests/ no existe todavía"
+  warn "tests/ folder does not exist yet"
 fi
 
 echo ""
-echo "── 5. Resumen ──────────────────────────────────────────"
+echo "── 5. Summary ──────────────────────────────────────────"
 
 if [ $EXIT_CODE -eq 0 ]; then
-  ok "Entorno listo. Puedes empezar a trabajar."
+  ok "Environment ready. You can start working."
 else
-  fail "Entorno NO está listo. Resuelve los errores antes de avanzar."
+  fail "Environment is NOT ready. Fix the errors before proceeding."
 fi
 
 exit $EXIT_CODE

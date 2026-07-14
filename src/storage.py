@@ -1,4 +1,4 @@
-"""Persistencia atómica de notas en un archivo JSON."""
+"""Atomic persistence of notes in a JSON file."""
 from __future__ import annotations
 
 import json

@@ -1,80 +1,80 @@
 # Review — feature #6 `cli_edit`
 
-**Veredicto:** APPROVED
+**Verdict:** APPROVED
 
-## Criterios de aceptación
+## Acceptance criteria
 
-- [x] `--title` solo actualiza solo el título → `test_edit_updates_only_title`
-      (verifica `notes[0]["title"] == "nuevo"` y `body == "cuerpo"`).
-- [x] `--body` solo actualiza solo el cuerpo → `test_edit_updates_only_body`
-      (verifica que el title se preserva).
-- [x] Ambos flags actualizan ambos campos → `test_edit_updates_both_fields`.
-- [x] Sin flags → exit ≠ 0 + mensaje claro → `test_edit_without_flags_returns_error`
-      (asserta `code != 0`, `out == ""`, `err != ""`, y además que la nota no
-      cambió en disco). Mensaje en `cli.py:61`: `"debes pasar --title y/o --body"`.
-- [x] Id inexistente → exit ≠ 0 + mensaje en stderr → `test_edit_missing_id_returns_error`
-      (asserta `code != 0`, `out == ""`, `"99" in err`).
-- [x] Cobertura: 4 escenarios + ausencia de flags = 5 tests `test_edit_*`.
+- [x] `--title` alone updates only the title → `test_edit_updates_only_title`
+      (verifies `notes[0]["title"] == "new"` and `body == "body"`).
+- [x] `--body` alone updates only the body → `test_edit_updates_only_body`
+      (verifies the title is preserved).
+- [x] Both flags update both fields → `test_edit_updates_both_fields`.
+- [x] No flags → exit ≠ 0 + clear message → `test_edit_without_flags_returns_error`
+      (asserts `code != 0`, `out == ""`, `err != ""`, and also that the note did
+      not change on disk). Message at `cli.py:61`: `"you must pass --title and/or --body"`.
+- [x] Non-existent id → exit ≠ 0 + message on stderr → `test_edit_missing_id_returns_error`
+      (asserts `code != 0`, `out == ""`, `"99" in err`).
+- [x] Coverage: 4 scenarios + absence of flags = 5 `test_edit_*` tests.
 
-## Arquitectura (`docs/architecture.md`)
+## Architecture (`docs/architecture.md`)
 
-- [x] Capas respetadas. `cmd_edit` solo usa `storage` y `notes`. No toca
-      `storage.py` ni `notes.py`.
-- [x] Sin dependencias externas. No existe `requirements.txt`. `cli.py` solo
-      importa `argparse`, `sys`, `src.storage`, `src.notes`.
-- [x] Errores explícitos. `NoteError` para "sin flags" y `NoteNotFound` para
-      id inexistente. Ambos se capturan en el handler de `main()`.
-- [x] Inmutabilidad de `Note`. `cli.py:65-70` construye una nueva instancia
-      `Note(...)` con `id` y `created_at` preservados; no muta la original.
-- [x] Atomicidad. `storage.py` intacto; `cmd_edit` llama a `storage.save()`
-      sin alterar su contrato.
+- [x] Layers respected. `cmd_edit` only uses `storage` and `notes`. Doesn't touch
+      `storage.py` or `notes.py`.
+- [x] No external dependencies. There is no `requirements.txt`. `cli.py` only
+      imports `argparse`, `sys`, `src.storage`, `src.notes`.
+- [x] Explicit errors. `NoteError` for "no flags" and `NoteNotFound` for a
+      non-existent id. Both are captured in the `main()` handler.
+- [x] `Note` immutability. `cli.py:65-70` builds a new `Note(...)` instance
+      with `id` and `created_at` preserved; doesn't mutate the original.
+- [x] Atomicity. `storage.py` intact; `cmd_edit` calls `storage.save()`
+      without altering its contract.
 
-## Convenciones (`docs/conventions.md`)
+## Conventions (`docs/conventions.md`)
 
-- [x] PEP 8, líneas ≤ 100 chars (verificado con regex `^.{101,}` → 0 matches
-      en `src/cli.py` y `tests/test_cli.py`).
-- [x] Comillas dobles consistentes.
-- [x] f-strings (`f"editada id={args.id}"`, `f"no existe la nota con id={args.id}"`).
-- [x] Sin comentarios decorativos, sin TODO/FIXME (grep en `src/` → 0 matches).
-- [x] Nombres correctos: `cmd_edit` (snake_case), preserva el patrón de
+- [x] PEP 8, lines ≤ 100 chars (verified with regex `^.{101,}` → 0 matches
+      in `src/cli.py` and `tests/test_cli.py`).
+- [x] Consistent double quotes.
+- [x] f-strings (`f"edited id={args.id}"`, `f"no note with id={args.id}"`).
+- [x] No decorative comments, no TODO/FIXME (grep in `src/` → 0 matches).
+- [x] Correct names: `cmd_edit` (snake_case), preserves the pattern of
       `cmd_add`, `cmd_show`, etc.
-- [x] `stderr` + exit 1 para errores del dominio: el handler de `main()`
-      (cli.py:116-118) captura `NoteError` (clase base de `NoteNotFound`),
-      imprime a `sys.stderr` y devuelve 1.
+- [x] `stderr` + exit 1 for domain errors: the `main()` handler
+      (cli.py:116-118) captures `NoteError` (base class of `NoteNotFound`),
+      prints to `sys.stderr` and returns 1.
 
-## Verificación (`docs/verification.md`)
+## Verification (`docs/verification.md`)
 
-- [x] Tests usan `tempfile.TemporaryDirectory()` (heredado del setUp de
-      `TestCli`, líneas 16-17).
-- [x] No mocks de filesystem. Solo se mockea la constante
-      `DEFAULT_NOTES_PATH` con `patch.object`, lo cual es legítimo.
-- [x] Tests verifican output concreto: contenido de `notes[0]["title"]`,
-      `notes[0]["body"]`, `id=1` en stdout, `"99"` en stderr, etc. No hay
-      asserts de "no lanza excepción".
+- [x] Tests use `tempfile.TemporaryDirectory()` (inherited from `TestCli`'s
+      setUp, lines 16-17).
+- [x] No filesystem mocks. Only the `DEFAULT_NOTES_PATH` constant is mocked
+      with `patch.object`, which is legitimate.
+- [x] Tests verify concrete output: content of `notes[0]["title"]`,
+      `notes[0]["body"]`, `id=1` in stdout, `"99"` in stderr, etc. There are no
+      "doesn't raise an exception" asserts.
 
 ## CHECKPOINTS.md
 
-- [x] C1 — Arnés completo. `./init.sh` exit 0; los 4 archivos base y los 3
-      docs existen.
-- [x] C2 — Estado coherente. 0 features en `in_progress` en
-      `feature_list.json` (feature #6 = `done`). Todas las features `done`
-      tienen tests verdes. `progress/current.md` describe la sesión activa.
-- [x] C3 — Arquitectura. `src/` solo contiene `cli.py`, `notes.py`,
-      `storage.py`, `__init__.py`. No hay `requirements.txt`. No hay prints
-      de debug ni TODOs.
-- [x] C4 — Verificación real. Cada módulo de `src/` tiene su test;
-      `tempfile.TemporaryDirectory()` en uso; 22 tests verdes.
-- [x] C5 — Sesión cerrada bien. No hay archivos `*.tmp` ni `__pycache__`
-      sin trackear sospechosos. La feature #6 está reflejada como `done`.
-      Nota menor: `progress/history.md` aún no tiene la entrada de la
-      sesión #6, pero por convención el historial se añade al cerrar
-      sesión, no al cerrar feature; el leader debería añadirla antes
-      del cierre final.
+- [x] C1 — Harness complete. `./init.sh` exit 0; the 4 base files and the 3
+      docs exist.
+- [x] C2 — Coherent state. 0 features in `in_progress` in
+      `feature_list.json` (feature #6 = `done`). All `done` features
+      have green tests. `progress/current.md` describes the active session.
+- [x] C3 — Architecture. `src/` only contains `cli.py`, `notes.py`,
+      `storage.py`, `__init__.py`. There is no `requirements.txt`. No debug
+      prints or TODOs.
+- [x] C4 — Real verification. Each module of `src/` has its test;
+      `tempfile.TemporaryDirectory()` in use; 22 green tests.
+- [x] C5 — Session closed properly. There are no suspicious untracked `*.tmp`
+      or `__pycache__` files. Feature #6 is reflected as `done`.
+      Minor note: `progress/history.md` doesn't yet have the entry for the
+      #6 session, but by convention the history is appended when the session
+      is closed, not when the feature is closed; the leader should add it before
+      the final close.
 
-## Salida final de `./init.sh`
+## Final output of `./init.sh`
 
 ```
-── 4. Ejecutando tests ─────────────────────────────────
+── 4. Running tests ────────────────────────────────────
 test_add_creates_note_and_prints_id (test_cli.TestCli.test_add_creates_note_and_prints_id) ... ok
 test_delete_missing_id_returns_error (test_cli.TestCli.test_delete_missing_id_returns_error) ... ok
 test_delete_removes_note_and_confirms (test_cli.TestCli.test_delete_removes_note_and_confirms) ... ok
@@ -102,18 +102,18 @@ test_save_then_load_roundtrip (test_storage.TestStorage.test_save_then_load_roun
 Ran 22 tests in 0.020s
 
 OK
-[OK]    Todos los tests pasan
+[OK]    All tests pass
 
-── 5. Resumen ──────────────────────────────────────────
-[OK]    Entorno listo. Puedes empezar a trabajar.
+── 5. Summary ──────────────────────────────────────────
+[OK]    Environment ready. You can start working.
 ```
 
-22 tests verdes, coincide con el reporte del implementer (17 previos + 5 nuevos).
+22 green tests, matching the implementer's report (17 previous + 5 new).
 
-## Cierre
+## Close
 
-La feature #6 `cli_edit` cumple literalmente los 6 criterios de aceptación,
-respeta la arquitectura, las convenciones y el protocolo de verificación.
-La marca `status: "done"` en `feature_list.json` es legítima y puede
-mantenerse. Recomendación menor (no bloqueante) al leader: añadir entrada
-de la sesión en `progress/history.md` antes de cerrar la sesión.
+Feature #6 `cli_edit` literally meets the 6 acceptance criteria,
+respects the architecture, the conventions and the verification protocol.
+The `status: "done"` mark in `feature_list.json` is legitimate and can
+be kept. Minor (non-blocking) recommendation to the leader: add the session
+entry in `progress/history.md` before closing the session.

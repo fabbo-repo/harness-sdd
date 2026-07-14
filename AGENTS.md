@@ -1,98 +1,98 @@
-# AGENTS.md — Mapa de navegación para agentes de IA
+# AGENTS.md — Navigation map for AI agents
 
-> Punto de entrada para cualquier agente que trabaje en este repositorio.
-> NO es una biblia de reglas: es un **mapa**. Lee solo lo que necesites
-> cuando lo necesites (divulgación progresiva).
+> Entry point for any agent working in this repository.
+> This is NOT a bible of rules: it is a **map**. Read only what you need
+> when you need it (progressive disclosure).
 >
-> **Rama `uncle-bob-harness`** — flujo estilo Robert C. Martin:
-> conversación → Gherkin → TDD → review → mutación. Ver `docs/workflow.md`.
+> **`uncle-bob-harness` branch** — Robert C. Martin-style flow:
+> conversation → Gherkin → TDD → review → mutation. See `docs/workflow.md`.
 
 ---
 
-## 1. Antes de empezar (obligatorio)
+## 1. Before you start (mandatory)
 
-1. Ejecuta `./init.sh` y verifica que termina sin errores. Si falla, **para**
-   y resuelve el entorno antes de tocar código.
-2. Lee `progress/current.md` para entender en qué estado quedó la última sesión.
-3. Lee `feature_list.json`. Toda feature nueva (`"sdd": true`) recorre el
-   pipeline de cinco fases — ver `docs/workflow.md` y §4.
-4. Lee `docs/workflow.md` antes de coordinar nada.
+1. Run `./init.sh` and verify it finishes without errors. If it fails, **stop**
+   and fix the environment before touching code.
+2. Read `progress/current.md` to understand what state the last session left.
+3. Read `feature_list.json`. Every new feature (`"sdd": true`) goes through the
+   five-phase pipeline — see `docs/workflow.md` and §4.
+4. Read `docs/workflow.md` before coordinating anything.
 
-## 2. Mapa del repositorio
+## 2. Repository map
 
-| Archivo / carpeta            | Qué contiene                                                                | Cuándo leerlo |
+| File / folder                | What it contains                                                            | When to read it |
 |------------------------------|-----------------------------------------------------------------------------|---------------|
-| `feature_list.json`          | Lista de tareas con estado (`pending` / `spec_ready` / `in_progress` / `done` / `blocked`) | Siempre, al empezar |
-| `progress/current.md`        | Estado de la sesión actual                                                  | Siempre, al empezar |
-| `progress/history.md`        | Bitácora append-only de sesiones anteriores                                 | Si necesitas contexto histórico |
-| `project-spec.md`            | Spec conversada: propósito, contrato y decisiones por feature               | Antes de destilar Gherkin o implementar |
-| `features/<name>.feature`    | Escenarios Gherkin (el contrato ejecutable que el humano aprueba)           | Antes de empezar el ciclo TDD |
-| `docs/workflow.md`           | El pipeline completo y los insights de cada fase                            | Antes de coordinar |
-| `docs/tdd.md`                | Las Tres Leyes del TDD; el ciclo Rojo-Verde-Refactor                        | Antes de escribir código |
-| `docs/gherkin.md`            | Cómo escribir `.feature`; de Gherkin a test                                 | Antes de redactar/leer escenarios |
-| `docs/mutation-testing.md`   | Por qué y cómo; umbral; uso de `tools/mutate.py`                            | Antes de validar la suite |
-| `docs/architecture.md`       | Qué significa "hacer un buen trabajo" en este proyecto                      | Antes de implementar |
-| `docs/conventions.md`        | Reglas de estilo, nombres, estructura                                       | Antes de escribir código |
-| `docs/verification.md`       | Cómo verificar que tu trabajo funciona                                      | Antes de declarar `done` |
-| `CHECKPOINTS.md`             | Criterios objetivos de "estado final correcto"                              | Para auto-evaluarte |
-| `tools/mutate.py`            | Mutador sin dependencias para la prueba de mutación                         | Fase de mutación |
-| `.claude/agents/`            | `craftsman_lead`, `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`, `mutation_tester` | Si orquestas trabajo |
-| `src/`                       | Código de la aplicación                                                     | Para implementar |
-| `tests/`                     | Tests automáticos                                                           | Para verificar |
+| `feature_list.json`          | Task list with status (`pending` / `spec_ready` / `in_progress` / `done` / `blocked`) | Always, at the start |
+| `progress/current.md`        | State of the current session                                               | Always, at the start |
+| `progress/history.md`        | Append-only log of previous sessions                                        | If you need historical context |
+| `project-spec.md`            | Conversed spec: purpose, contract and decisions per feature                 | Before distilling Gherkin or implementing |
+| `features/<name>.feature`    | Gherkin scenarios (the executable contract the human approves)              | Before starting the TDD cycle |
+| `docs/workflow.md`           | The full pipeline and the insights of each phase                            | Before coordinating |
+| `docs/tdd.md`                | The Three Laws of TDD; the Red-Green-Refactor cycle                         | Before writing code |
+| `docs/gherkin.md`            | How to write `.feature`; from Gherkin to test                               | Before drafting/reading scenarios |
+| `docs/mutation-testing.md`   | Why and how; threshold; using `tools/mutate.py`                            | Before validating the suite |
+| `docs/architecture.md`       | What "doing good work" means in this project                                | Before implementing |
+| `docs/conventions.md`        | Rules of style, naming, structure                                           | Before writing code |
+| `docs/verification.md`       | How to verify that your work works                                          | Before declaring `done` |
+| `CHECKPOINTS.md`             | Objective "correct final state" criteria                                    | To self-evaluate |
+| `tools/mutate.py`            | Dependency-free mutator for mutation testing                                | Mutation phase |
+| `.claude/agents/`            | `craftsman_lead`, `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`, `mutation_tester` | If you orchestrate work |
+| `src/`                       | Application code                                                            | To implement |
+| `tests/`                     | Automated tests                                                            | To verify |
 
-## 3. Reglas duras (no negociables)
+## 3. Hard rules (non-negotiable)
 
-- **Una sola feature a la vez.** No mezcles cambios de varias tareas en la misma sesión.
-- **No declares una tarea `done` sin pruebas verdes Y umbral de mutación
-  superado.** Ejecuta `./init.sh` y la prueba de mutación.
-- **No saltes la conversación de spec ni la destilación Gherkin.** Toda
-  feature con `"sdd": true` pasa por `spec_partner` y `gherkin_author`.
-- **No saltes la puerta de aprobación humana** sobre los `.feature`. El
-  `craftsman_lead` detiene el flujo en `spec_ready` y espera.
-- **TDD estricto: un test a la vez.** Nada de producción sin un test rojo
-  que la pida (`docs/tdd.md`).
-- **Documenta lo que haces** en `progress/current.md` mientras trabajas.
-- **Deja el repositorio limpio** antes de cerrar la sesión (ver §5).
-- **Si no sabes algo, busca en `docs/`** antes de inventarlo.
+- **One feature at a time.** Don't mix changes from several tasks in the same session.
+- **Don't declare a task `done` without green tests AND the mutation threshold
+  cleared.** Run `./init.sh` and the mutation test.
+- **Don't skip the spec conversation or the Gherkin distillation.** Every
+  feature with `"sdd": true` goes through `spec_partner` and `gherkin_author`.
+- **Don't skip the human approval gate** over the `.feature` files. The
+  `craftsman_lead` halts the flow at `spec_ready` and waits.
+- **Strict TDD: one test at a time.** No production code without a red test
+  that demands it (`docs/tdd.md`).
+- **Document what you do** in `progress/current.md` while you work.
+- **Leave the repository clean** before closing the session (see §5).
+- **If you don't know something, look in `docs/`** before making it up.
 
-## 4. Flujo de trabajo (pipeline)
+## 4. Workflow (pipeline)
 
 ```
 pending
-  → [spec_partner]   conversación → project-spec.md
+  → [spec_partner]   conversation → project-spec.md
   → [gherkin_author] project-spec.md → features/<name>.feature   (status: spec_ready)
-  → ⏸ HUMANO APRUEBA los escenarios
+  → ⏸ HUMAN APPROVES the scenarios
   → in_progress
-  → [tdd_craftsman]  Rojo → Verde → Refactor (un test a la vez)
-  → [judge]          review (el juego entero)
-  → [mutation_tester] mata mutantes; valida que los tests muerden
+  → [tdd_craftsman]  Red → Green → Refactor (one test at a time)
+  → [judge]          review (the whole game)
+  → [mutation_tester] kills mutants; validates that the tests bite
   → done
 ```
 
-1. El `craftsman_lead` detecta la primera feature `pending` con `"sdd": true`.
-2. Lanza `spec_partner` (conversa y debate) → `project-spec.md`.
-3. Lanza `gherkin_author` → `features/<name>.feature`, status `spec_ready`.
-4. **Pausa.** El humano lee los escenarios y aprueba (o pide cambios).
-5. Aprobado → status `in_progress` y lanza `tdd_craftsman`.
-6. El `tdd_craftsman` recorre cada escenario `@s` con ciclos Rojo-Verde-Refactor.
-7. El `judge` revisa cobertura, disciplina TDD y calidad; aprueba o rechaza.
-8. El `mutation_tester` corre `tools/mutate.py`; exige el umbral.
-9. Si todo pasa, el `tdd_craftsman` marca `done` y mueve el resumen a
+1. The `craftsman_lead` detects the first `pending` feature with `"sdd": true`.
+2. Launches `spec_partner` (converses and debates) → `project-spec.md`.
+3. Launches `gherkin_author` → `features/<name>.feature`, status `spec_ready`.
+4. **Pause.** The human reads the scenarios and approves (or asks for changes).
+5. Approved → status `in_progress` and launches `tdd_craftsman`.
+6. The `tdd_craftsman` walks each `@s` scenario with Red-Green-Refactor cycles.
+7. The `judge` reviews coverage, TDD discipline and quality; approves or rejects.
+8. The `mutation_tester` runs `tools/mutate.py`; demands the threshold.
+9. If everything passes, the `tdd_craftsman` marks `done` and moves the summary to
    `progress/history.md`.
 
-## 5. Cierre de sesión (lifecycle)
+## 5. Session close (lifecycle)
 
-Antes de terminar:
+Before finishing:
 
-1. Ejecuta `./init.sh` — todo verde.
-2. Corre la prueba de mutación sobre lo tocado — supera el umbral.
-3. Si la tarea está acabada: marca `status: "done"` en `feature_list.json`.
-4. Mueve el resumen de `progress/current.md` al final de `progress/history.md`.
-5. Vacía `progress/current.md` dejando solo la plantilla.
-6. No dejes archivos temporales, ni `print()` de debug, ni TODOs sin contexto.
+1. Run `./init.sh` — all green.
+2. Run the mutation test over what you touched — clears the threshold.
+3. If the task is finished: set `status: "done"` in `feature_list.json`.
+4. Move the summary from `progress/current.md` to the end of `progress/history.md`.
+5. Empty `progress/current.md`, leaving only the template.
+6. Don't leave temporary files, debug `print()`s, or TODOs without context.
 
-## 6. Si te bloqueas
+## 6. If you get stuck
 
-- Relee la sección relevante de `docs/`.
-- Si la herramienta no hace lo que esperas, **no inventes un workaround**:
-  documenta el bloqueo en `progress/current.md` y para la sesión.
+- Re-read the relevant section of `docs/`.
+- If the tool doesn't do what you expect, **don't invent a workaround**:
+  document the blocker in `progress/current.md` and stop the session.

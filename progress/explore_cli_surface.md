@@ -1,25 +1,25 @@
-# Exploración: cli_surface
+# Exploration: cli_surface
 
-**Pregunta:** Qué comandos expone el CLI
-**Archivo analizado:** `src/cli.py`
-**Generado:** 2026-04-27T14:00:56+00:00
+**Question:** What commands the CLI exposes
+**File analyzed:** `src/cli.py`
+**Generated:** 2026-04-27T14:00:56+00:00
 
-## Métricas
-- Líneas de código: 49
-- Funciones públicas: 4
-- Clases: 0
+## Metrics
+- Lines of code: 49
+- Public functions: 4
+- Classes: 0
 - Imports: 5
 
-## Funciones
+## Functions
 - `cmd_add`
 - `cmd_list`
 - `build_parser`
 - `main`
 
-## Clases
-- (ninguna)
+## Classes
+- (none)
 
-## Dependencias
+## Dependencies
 - `from __future__ import annotations`
 - `import argparse`
 - `import sys`

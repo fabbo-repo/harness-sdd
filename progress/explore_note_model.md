@@ -1,24 +1,24 @@
-# Exploración: note_model
+# Exploration: note_model
 
-**Pregunta:** Estructura del modelo de dominio Note
-**Archivo analizado:** `src/notes.py`
-**Generado:** 2026-04-27T14:00:56+00:00
+**Question:** Structure of the Note domain model
+**File analyzed:** `src/notes.py`
+**Generated:** 2026-04-27T14:00:56+00:00
 
-## Métricas
-- Líneas de código: 34
-- Funciones públicas: 0
-- Clases: 3
+## Metrics
+- Lines of code: 34
+- Public functions: 0
+- Classes: 3
 - Imports: 3
 
-## Funciones
-- (ninguna)
+## Functions
+- (none)
 
-## Clases
+## Classes
 - `NoteError`
 - `NoteNotFound`
 - `Note`
 
-## Dependencias
+## Dependencies
 - `from __future__ import annotations`
 - `from dataclasses import asdict, dataclass`
 - `from datetime import datetime, timezone`

@@ -1,4 +1,4 @@
-"""Interfaz de línea de comandos."""
+"""Command-line interface."""
 from __future__ import annotations
 
 import argparse
@@ -36,16 +36,16 @@ def cmd_show(args: argparse.Namespace) -> int:
             print(n["created_at"])
             print(n["body"])
             return 0
-    raise NoteNotFound(f"no existe la nota con id={args.id}")
+    raise NoteNotFound(f"no note with id={args.id}")
 
 
 def cmd_delete(args: argparse.Namespace) -> int:
     notes = storage.load()
     remaining = [n for n in notes if n["id"] != args.id]
     if len(remaining) == len(notes):
-        raise NoteNotFound(f"no existe la nota con id={args.id}")
+        raise NoteNotFound(f"no note with id={args.id}")
     storage.save(remaining)
-    print(f"borrada id={args.id}")
+    print(f"deleted id={args.id}")
     return 0
 
 
@@ -54,7 +54,7 @@ def cmd_search(args: argparse.Namespace) -> int:
     query = args.query.lower()
     matches = [n for n in notes if query in n["title"].lower() or query in n["body"].lower()]
     if not matches:
-        raise NoteNotFound(f"no hay notas que contengan \"{args.query}\"")
+        raise NoteNotFound(f"no notes contain \"{args.query}\"")
     for n in matches:
         print(f"{n['id']}\t{n['created_at']}\t{n['title']}")
     return 0
@@ -62,7 +62,7 @@ def cmd_search(args: argparse.Namespace) -> int:
 
 def cmd_recent(args: argparse.Namespace) -> int:
     if args.limit <= 0:
-        raise NoteError("--limit debe ser un entero positivo")
+        raise NoteError("--limit must be a positive integer")
     notes = storage.load()
     if not notes:
         return 0
@@ -74,7 +74,7 @@ def cmd_recent(args: argparse.Namespace) -> int:
 
 def cmd_edit(args: argparse.Namespace) -> int:
     if args.title is None and args.body is None:
-        raise NoteError("debes pasar --title y/o --body")
+        raise NoteError("you must pass --title and/or --body")
     notes = storage.load()
     for i, n in enumerate(notes):
         if n["id"] == args.id:
@@ -86,16 +86,16 @@ def cmd_edit(args: argparse.Namespace) -> int:
             )
             notes[i] = updated.to_dict()
             storage.save(notes)
-            print(f"editada id={args.id}")
+            print(f"edited id={args.id}")
             return 0
-    raise NoteNotFound(f"no existe la nota con id={args.id}")
+    raise NoteNotFound(f"no note with id={args.id}")
 
 
 def cmd_since(args: argparse.Namespace) -> int:
     try:
         datetime.strptime(args.date, DATE_FORMAT)
     except ValueError:
-        raise NoteError(f"fecha inválida: \"{args.date}\" (formato esperado YYYY-MM-DD)")
+        raise NoteError(f"invalid date: \"{args.date}\" (expected format YYYY-MM-DD)")
     notes = storage.load()
     matches = [n for n in notes if n["created_at"][:DATE_LENGTH] >= args.date]
     ordered = sorted(matches, key=lambda n: n["created_at"], reverse=True)
@@ -111,44 +111,44 @@ def cmd_count(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="notes", description="CLI minimalista de notas.")
+    parser = argparse.ArgumentParser(prog="notes", description="Minimalist notes CLI.")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    p_add = sub.add_parser("add", help="Añadir una nota.")
+    p_add = sub.add_parser("add", help="Add a note.")
     p_add.add_argument("title")
     p_add.add_argument("--body", default="")
     p_add.set_defaults(func=cmd_add)
 
-    p_list = sub.add_parser("list", help="Listar todas las notas.")
+    p_list = sub.add_parser("list", help="List all notes.")
     p_list.set_defaults(func=cmd_list)
 
-    p_show = sub.add_parser("show", help="Mostrar una nota por id.")
+    p_show = sub.add_parser("show", help="Show a note by id.")
     p_show.add_argument("id", type=int)
     p_show.set_defaults(func=cmd_show)
 
-    p_delete = sub.add_parser("delete", help="Borrar una nota por id.")
+    p_delete = sub.add_parser("delete", help="Delete a note by id.")
     p_delete.add_argument("id", type=int)
     p_delete.set_defaults(func=cmd_delete)
 
-    p_search = sub.add_parser("search", help="Buscar notas por palabra.")
+    p_search = sub.add_parser("search", help="Search notes by word.")
     p_search.add_argument("query")
     p_search.set_defaults(func=cmd_search)
 
-    p_edit = sub.add_parser("edit", help="Editar una nota por id.")
+    p_edit = sub.add_parser("edit", help="Edit a note by id.")
     p_edit.add_argument("id", type=int)
     p_edit.add_argument("--title", default=None)
     p_edit.add_argument("--body", default=None)
     p_edit.set_defaults(func=cmd_edit)
 
-    p_recent = sub.add_parser("recent", help="Listar las N notas más recientes.")
+    p_recent = sub.add_parser("recent", help="List the N most recent notes.")
     p_recent.add_argument("--limit", type=int, default=5)
     p_recent.set_defaults(func=cmd_recent)
 
-    p_since = sub.add_parser("since", help="Listar notas creadas en o después de una fecha.")
+    p_since = sub.add_parser("since", help="List notes created on or after a date.")
     p_since.add_argument("date")
     p_since.set_defaults(func=cmd_since)
 
-    p_count = sub.add_parser("count", help="Contar las notas almacenadas.")
+    p_count = sub.add_parser("count", help="Count the stored notes.")
     p_count.set_defaults(func=cmd_count)
 
     return parser

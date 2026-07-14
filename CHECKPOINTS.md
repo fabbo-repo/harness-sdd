@@ -1,68 +1,68 @@
-# CHECKPOINTS — Evaluación del estado final
+# CHECKPOINTS — Final state evaluation
 
-> En sistemas multi-agente no se evalúa el camino, se evalúa el destino.
-> Estos son los checkpoints objetivos que un juez (humano o IA) puede usar
-> para decidir si el proyecto está sano.
+> In multi-agent systems you don't evaluate the path, you evaluate the
+> destination. These are the objective checkpoints a judge (human or AI) can
+> use to decide whether the project is healthy.
 
-## C1 — El arnés está completo
+## C1 — The harness is complete
 
-- [ ] Existen los 4 archivos base: `AGENTS.md`, `init.sh`, `feature_list.json`,
+- [ ] The 4 base files exist: `AGENTS.md`, `init.sh`, `feature_list.json`,
       `progress/current.md`.
-- [ ] Existen los 3 docs: `docs/architecture.md`, `docs/conventions.md`,
+- [ ] The 3 docs exist: `docs/architecture.md`, `docs/conventions.md`,
       `docs/verification.md`.
-- [ ] `./init.sh` termina con exit code 0.
+- [ ] `./init.sh` finishes with exit code 0.
 
-## C2 — El estado es coherente
+## C2 — The state is coherent
 
-- [ ] Como mucho una feature en `in_progress` en `feature_list.json`.
-- [ ] Toda feature `done` tiene tests asociados que pasan.
-- [ ] `progress/current.md` está vacío o describe la sesión activa
-      (no contiene basura de sesiones anteriores).
+- [ ] At most one feature in `in_progress` in `feature_list.json`.
+- [ ] Every `done` feature has associated tests that pass.
+- [ ] `progress/current.md` is empty or describes the active session
+      (contains no garbage from previous sessions).
 
-## C3 — El código respeta la arquitectura
+## C3 — The code respects the architecture
 
-- [ ] `src/` solo contiene los módulos previstos en `docs/architecture.md`.
-- [ ] No hay dependencias externas en `requirements.txt` (debe estar vacío
-      o no existir).
-- [ ] No hay `print()` sueltos para debug, ni TODOs sin contexto.
+- [ ] `src/` only contains the modules foreseen in `docs/architecture.md`.
+- [ ] There are no external dependencies in `requirements.txt` (it must be empty
+      or not exist).
+- [ ] There are no stray debug `print()`s, nor TODOs without context.
 
-## C4 — La verificación es real
+## C4 — Verification is real
 
-- [ ] `tests/` tiene al menos un test por módulo de `src/`.
-- [ ] Los tests usan `tempfile.TemporaryDirectory()`, no mocks de fs.
-- [ ] `python3 -m unittest discover -s tests -v` muestra > 0 tests
-      y todos verdes.
+- [ ] `tests/` has at least one test per module of `src/`.
+- [ ] The tests use `tempfile.TemporaryDirectory()`, not fs mocks.
+- [ ] `python3 -m unittest discover -s tests -v` shows > 0 tests
+      and all green.
 
-## C5 — La sesión se cerró bien
+## C5 — The session was closed properly
 
-- [ ] No hay archivos sin trackear sospechosos (`*.tmp`, `__pycache__`
-      fuera del `.gitignore`).
-- [ ] `progress/history.md` tiene una entrada por la última sesión.
-- [ ] La última feature trabajada está reflejada en su estado correcto.
+- [ ] There are no suspicious untracked files (`*.tmp`, `__pycache__`
+      outside `.gitignore`).
+- [ ] `progress/history.md` has an entry for the last session.
+- [ ] The last feature worked on is reflected in its correct state.
 
-## C6 — Contrato Gherkin (BDD)
+## C6 — Gherkin contract (BDD)
 
-- [ ] Toda feature con `"sdd": true` en estado `spec_ready`, `in_progress`
-      o `done` tiene su `features/<name>.feature` y una sección en
+- [ ] Every feature with `"sdd": true` in state `spec_ready`, `in_progress`
+      or `done` has its `features/<name>.feature` and a section in
       `project-spec.md`.
-- [ ] El `.feature` usa Gherkin con escenarios tagueados `@s1`, `@s2`, …
-      y cada `Then` afirma algo medible (ver `docs/gherkin.md`).
-- [ ] Cada escenario `@s` está cubierto por al menos un test concreto en
-      `tests/` (mapa `@s → test` en `progress/tdd_<name>.md`).
-- [ ] No hay código de producción que ningún test rojo haya pedido
-      (disciplina TDD, ver `docs/tdd.md`).
+- [ ] The `.feature` uses Gherkin with scenarios tagged `@s1`, `@s2`, …
+      and each `Then` asserts something measurable (see `docs/gherkin.md`).
+- [ ] Every `@s` scenario is covered by at least one concrete test in
+      `tests/` (`@s → test` map in `progress/tdd_<name>.md`).
+- [ ] There is no production code that no red test asked for
+      (TDD discipline, see `docs/tdd.md`).
 
-## C7 — Prueba de mutación
+## C7 — Mutation testing
 
-- [ ] La feature `done` superó la prueba de mutación
-      (`python3 tools/mutate.py src/<archivo>.py`) con la puntuación por
-      encima del umbral de `docs/mutation-testing.md`.
-- [ ] Cualquier mutante sobreviviente queda documentado en
-      `progress/mutation_<name>.md` (matado con un test nuevo, o
-      justificado como equivalente).
+- [ ] The `done` feature cleared the mutation test
+      (`python3 tools/mutate.py src/<file>.py`) with the score above
+      the threshold in `docs/mutation-testing.md`.
+- [ ] Any surviving mutant is documented in
+      `progress/mutation_<name>.md` (killed with a new test, or
+      justified as equivalent).
 
 ---
 
-**Cómo usar este archivo:** el agente `judge` (`.claude/agents/judge.md`)
-recorre C1-C6 y el `mutation_tester` valida C7. Se rechaza el cierre de
-sesión si quedan boxes vacíos.
+**How to use this file:** the `judge` agent (`.claude/agents/judge.md`)
+walks C1-C6 and the `mutation_tester` validates C7. The session close is
+rejected if any boxes remain empty.
