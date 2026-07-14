@@ -1,4 +1,5 @@
-# ejemplo-harness — Notes CLI · `uncle-bob-harness` branch
+# Harness SDD — Uncle Bob Workflow
+> Spec-driven, test-first development pipeline for AI agents, built around a minimal notes CLI.
 
 This branch reorganizes the same `notes-cli` around the process of
 **Robert C. Martin (Uncle Bob)** described in his thread: converse the spec,
