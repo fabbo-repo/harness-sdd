@@ -5,7 +5,13 @@
     "one_feature_at_a_time": true,
     "require_tests_to_close": true,
     "require_approved_spec_to_implement": true,
-    "valid_status": ["pending", "spec_ready", "in_progress", "done", "blocked"],
+    "valid_status": [
+      "pending",
+      "spec_ready",
+      "in_progress",
+      "done",
+      "blocked"
+    ],
     "sdd_required_when": "feature has \"sdd\": true"
   },
   "features": [
@@ -115,7 +121,7 @@
         "tests/test_cli.py cubre: archivo vacío y archivo con varias notas"
       ],
       "sdd": true,
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 9,
@@ -162,6 +168,23 @@
       ],
       "sdd": true,
       "status": "pending"
+    },
+    {
+      "id": 12,
+      "name": "cli_since",
+      "title": "Comando since (filtrar por fecha)",
+      "description": "Lista las notas creadas en una fecha dada o después. Caso de uso real: 'enséñame lo que apunté desde el lunes'. Tarea de ejemplo para recorrer el flujo Uncle Bob de punta a punta.",
+      "acceptance": [
+        "`python -m src.cli since 2026-05-01` lista las notas creadas en esa fecha o después, una por línea con el formato `<id>\\t<created_at>\\t<title>` (igual que `list`)",
+        "El filtro compara por fecha de calendario (YYYY-MM-DD) e incluye las notas creadas exactamente en la fecha indicada (límite inclusivo)",
+        "Las notas se listan ordenadas por `created_at` descendente (más reciente primero)",
+        "Si la fecha no tiene formato YYYY-MM-DD válido, exit code != 0 y un mensaje claro en stderr",
+        "Si ninguna nota cumple el criterio, exit code 0 y no imprime nada (coherente con `list`/`recent`)",
+        "El comando no modifica el archivo de notas",
+        "tests/test_cli.py cubre: coincidencia con límite inclusivo, fecha sin coincidencias, formato de fecha inválido y archivo vacío"
+      ],
+      "sdd": true,
+      "status": "done"
     }
   ]
 }

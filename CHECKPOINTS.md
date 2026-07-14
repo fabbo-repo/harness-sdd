@@ -40,19 +40,29 @@
 - [ ] `progress/history.md` tiene una entrada por la última sesión.
 - [ ] La última feature trabajada está reflejada en su estado correcto.
 
-## C6 — Spec Driven Development
+## C6 — Contrato Gherkin (BDD)
 
 - [ ] Toda feature con `"sdd": true` en estado `spec_ready`, `in_progress`
-      o `done` tiene su carpeta `specs/<name>/` con los 3 archivos:
-      `requirements.md`, `design.md`, `tasks.md`.
-- [ ] `requirements.md` usa EARS estricto (ver `docs/specs.md`).
-- [ ] Toda feature `done` con `"sdd": true` tiene todas sus tasks marcadas
-      `[x]` en `tasks.md`.
-- [ ] Cada `R<n>` de `requirements.md` está cubierto por al menos un test
-      concreto en `tests/`.
+      o `done` tiene su `features/<name>.feature` y una sección en
+      `project-spec.md`.
+- [ ] El `.feature` usa Gherkin con escenarios tagueados `@s1`, `@s2`, …
+      y cada `Then` afirma algo medible (ver `docs/gherkin.md`).
+- [ ] Cada escenario `@s` está cubierto por al menos un test concreto en
+      `tests/` (mapa `@s → test` en `progress/tdd_<name>.md`).
+- [ ] No hay código de producción que ningún test rojo haya pedido
+      (disciplina TDD, ver `docs/tdd.md`).
+
+## C7 — Prueba de mutación
+
+- [ ] La feature `done` superó la prueba de mutación
+      (`python3 tools/mutate.py src/<archivo>.py`) con la puntuación por
+      encima del umbral de `docs/mutation-testing.md`.
+- [ ] Cualquier mutante sobreviviente queda documentado en
+      `progress/mutation_<name>.md` (matado con un test nuevo, o
+      justificado como equivalente).
 
 ---
 
-**Cómo usar este archivo:** un agente revisor (`.claude/agents/reviewer.md`)
-recorre cada checkbox, marca `[x]` o `[ ]`, y rechaza el cierre de sesión
-si quedan boxes vacíos en C1-C6.
+**Cómo usar este archivo:** el agente `judge` (`.claude/agents/judge.md`)
+recorre C1-C6 y el `mutation_tester` valida C7. Se rechaza el cierre de
+sesión si quedan boxes vacíos.

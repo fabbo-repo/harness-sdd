@@ -44,19 +44,32 @@ NOTES_FILE=/tmp/notes_demo.json python3 -m src.cli list
 rm /tmp/notes_demo.json
 ```
 
-### Nivel 4 — Trazabilidad de requirements (obligatorio para features con `"sdd": true`)
+### Nivel 4 — Trazabilidad de escenarios (obligatorio para features con `"sdd": true`)
 
-Cada `R<n>` de `specs/<name>/requirements.md` debe poder mapearse a al
-menos un test concreto en `tests/`. El reviewer rechaza si falta cobertura.
+Cada escenario `@s` de `features/<name>.feature` debe poder mapearse a al
+menos un test concreto en `tests/`. El `judge` rechaza si falta cobertura.
 
-El implementer documenta el mapa en `progress/impl_<name>.md`:
+El `tdd_craftsman` documenta el mapa en `progress/tdd_<name>.md`:
 
 ```markdown
 ## Trazabilidad
-- R1 → `test_recent_default_limit`
-- R2 → `test_recent_invalid_limit`
-- R3 → `test_recent_custom_limit`
+- @s1 (archivo vacío → 0) → test_count_archivo_vacio
+- @s2 (varias notas → 3)  → test_count_varias_notas
+- @s3 (no muta el archivo) → test_count_no_muta_archivo
 ```
+
+### Nivel 5 — Prueba de mutación (obligatorio para cerrar una feature sdd)
+
+Una suite verde no basta: hay que demostrar que los tests **muerden**. El
+`mutation_tester` corre el mutador y exige el umbral de
+`docs/mutation-testing.md`:
+
+```bash
+python3 tools/mutate.py src/cli.py
+```
+
+Todo mutante sobreviviente se mata con un test nuevo o se justifica como
+equivalente en `progress/mutation_<name>.md`.
 
 ## Anti-patrones (no hacer)
 
@@ -69,8 +82,10 @@ El implementer documenta el mapa en `progress/impl_<name>.md`:
 ## Verificación final antes de cerrar
 
 ```bash
-./init.sh           # debe terminar con [OK] Entorno listo
+./init.sh                       # debe terminar con [OK] Entorno listo
+python3 tools/mutate.py src/cli.py   # score por encima del umbral
 ```
 
-Si `./init.sh` está rojo, **no** marques nada como `done`. Anota el bloqueo
-en `progress/current.md` con estado `blocked` en `feature_list.json`.
+Si `./init.sh` está rojo o sobreviven mutantes sin justificar, **no**
+marques nada como `done`. Anota el bloqueo en `progress/current.md` con
+estado `blocked` en `feature_list.json`.

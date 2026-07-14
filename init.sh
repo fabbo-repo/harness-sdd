@@ -38,7 +38,7 @@ ok "Versión de Python compatible"
 echo ""
 echo "── 2. Verificando archivos base del arnés ──────────────"
 
-for f in AGENTS.md feature_list.json progress/current.md docs/architecture.md docs/conventions.md docs/verification.md CHECKPOINTS.md; do
+for f in AGENTS.md feature_list.json progress/current.md docs/architecture.md docs/conventions.md docs/verification.md docs/workflow.md tools/mutate.py CHECKPOINTS.md; do
   if [ ! -f "$f" ]; then
     fail "Falta archivo base: $f"
     EXIT_CODE=1
@@ -48,7 +48,7 @@ for f in AGENTS.md feature_list.json progress/current.md docs/architecture.md do
 done
 
 echo ""
-echo "── 3. Validando feature_list.json y specs ─────────────"
+echo "── 3. Validando feature_list.json y escenarios ────────"
 
 python3 - <<'PY'
 import json, os, sys
@@ -66,19 +66,18 @@ try:
             print(f"[FAIL]  Estado inválido en feature {f['id']}: {f['status']}")
             sys.exit(1)
         if f.get("sdd") and f["status"] in requires_spec:
-            spec_dir = os.path.join("specs", f["name"])
-            for fname in ("requirements.md", "design.md", "tasks.md"):
-                if not os.path.isfile(os.path.join(spec_dir, fname)):
-                    spec_errors.append(
-                        f"feature {f['id']} ({f['name']}) en {f['status']} "
-                        f"sin {spec_dir}/{fname}"
-                    )
+            feature_file = os.path.join("features", f["name"] + ".feature")
+            if not os.path.isfile(feature_file):
+                spec_errors.append(
+                    f"feature {f['id']} ({f['name']}) en {f['status']} "
+                    f"sin {feature_file}"
+                )
     if spec_errors:
         for e in spec_errors:
             print(f"[FAIL]  {e}")
         sys.exit(1)
     print(f"[OK]    feature_list.json válido ({len(data['features'])} features)")
-    print(f"[OK]    Specs presentes para features sdd con estado no-pending")
+    print(f"[OK]    Escenarios .feature presentes para features sdd no-pending")
 except SystemExit:
     raise
 except Exception as e:
