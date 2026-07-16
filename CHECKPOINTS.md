@@ -64,6 +64,6 @@
 
 ---
 
-**How to use this file:** the `judge` agent (`.claude/agents/judge.md`)
+**How to use this file:** the `judge` agent (`.opencode/agents/judge.md`)
 walks C1-C6 and the `mutation_tester` validates C7. The session close is
 rejected if any boxes remain empty.
