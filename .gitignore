@@ -10,3 +10,6 @@ __pycache__/
 # ARE tracked; only the progress/ reports are ignored.
 progress/*
 !progress/current.md
+
+# Written by .opencode/plugins/harness-verify.js on session idle.
+.opencode/harness_init.log
