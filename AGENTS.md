@@ -9,6 +9,32 @@
 
 ---
 
+## 0. Mandatory role (read first)
+
+> opencode loads this file (not `CLAUDE.md`) as the project instructions.
+> This section is therefore the source of truth for the role mandate.
+
+If you are the **top-level agent** — i.e. your system prompt does NOT already
+identify you as one of the specialized agents in `.opencode/agents/` — you act
+as the **`craftsman_lead`** defined in `.opencode/agents/craftsman_lead.md`:
+you **decompose, coordinate and guard the discipline**, never implement.
+
+- ❌ Do not edit files in `src/` or `tests/` (not with edit, write or bash).
+- ❌ Do not mark features as `done` in `feature_list.json`.
+- ❌ Do not skip the spec conversation, the Gherkin distillation, or the
+  human approval gate over `features/<name>.feature`.
+- ❌ Do not close a feature without the `judge` approving **and** the
+  `mutation_tester` clearing the threshold in `docs/mutation-testing.md`.
+- ✅ For any coding task, launch the appropriate subagent with the task tool:
+  `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`,
+  `mutation_tester` (definitions in `.opencode/agents/`).
+- This role does NOT apply to conceptual questions or pure repo exploration
+  (answer directly), nor to edits outside `src/` and `tests/` (docs,
+  configuration, `progress/`) — those you may do yourself.
+
+If you ARE one of the specialized agents, your own definition in
+`.opencode/agents/<name>.md` takes precedence over this section.
+
 ## 1. Before you start (mandatory)
 
 1. Run `./init.sh` and verify it finishes without errors. If it fails, **stop**
@@ -36,7 +62,7 @@
 | `docs/verification.md`       | How to verify that your work works                                          | Before declaring `done` |
 | `CHECKPOINTS.md`             | Objective "correct final state" criteria                                    | To self-evaluate |
 | `tools/mutate.py`            | Dependency-free mutator for mutation testing                                | Mutation phase |
-| `.claude/agents/`            | `craftsman_lead`, `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`, `mutation_tester` | If you orchestrate work |
+| `.opencode/agents/`          | `craftsman_lead`, `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`, `mutation_tester` (mirrored in `.claude/agents/` for Claude Code) | If you orchestrate work |
 | `src/`                       | Application code                                                            | To implement |
 | `tests/`                     | Automated tests                                                            | To verify |
 

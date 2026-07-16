@@ -42,7 +42,8 @@ contract, **before** writing production code.
 | `judge`           | Review is the game: approves or **prunes**. Doesn't edit code.      | `progress/judge_*`                   |
 | `mutation_tester` | Measures whether the tests **bite**. Doesn't edit code.            | `progress/mutation_*`                |
 
-Definitions in `.claude/agents/`.
+Definitions in `.opencode/agents/` (mirrored in `.claude/agents/` for
+Claude Code users).
 
 ## The insights behind each step
 
@@ -94,9 +95,15 @@ mutator that decides killed/survived by your `test_command`'s exit code — see
 3. `./init.sh` — must finish green.
 4. Fill in `feature_list.json`: set `project`/`description` and add your first
    feature with `status: "pending"` and `"sdd": true` (shape below).
-5. Open the repo in Claude Code and ask: **"implement the next pending feature"**.
-   `CLAUDE.md` forces the model to act as `craftsman_lead` (orchestrates,
-   doesn't edit code) and `docs/workflow.md` enforces the pipeline.
+5. Open the repo in **opencode**, switch to the `craftsman_lead` primary
+   agent (**Tab** cycles primary agents) and ask: **"implement the next
+   pending feature"**. `AGENTS.md` §0 forces the top-level agent into the
+   `craftsman_lead` role (orchestrates, doesn't edit code) and
+   `docs/workflow.md` enforces the pipeline.
+
+   > Claude Code still works too: `CLAUDE.md` and `.claude/` mirror the
+   > opencode setup. Note that opencode ignores `CLAUDE.md` when `AGENTS.md`
+   > exists — which is why the role mandate lives in `AGENTS.md`.
 
 What happens:
 
@@ -139,9 +146,10 @@ TDD → review → mutation). `name` must match the `features/<name>.feature` fi
 
 ```
 .
-├── AGENTS.md                 # Map for agents (progressive disclosure)
+├── AGENTS.md                 # Map for agents + the craftsman_lead role mandate (§0)
 ├── CHECKPOINTS.md            # "Correct final state" criteria (C1–C7)
-├── CLAUDE.md                 # Forces the craftsman_lead role
+├── CLAUDE.md                 # Same mandate for Claude Code (opencode ignores it)
+├── opencode.json             # opencode config: pre-approved harness commands
 ├── harness.json              # Language config: test_command, source_dir, …
 ├── feature_list.json         # Scope: your features, one at a time
 ├── init.sh                   # Verification and initialization
@@ -163,10 +171,12 @@ TDD → review → mutation). `name` must match the `features/<name>.feature` fi
 ├── tools/
 │   ├── mutate.py             # Language-agnostic, dependency-free mutator
 │   └── run_tests.sh          # Runs test_command from harness.json
-├── .claude/
+├── .opencode/
 │   ├── agents/               # craftsman_lead, spec_partner, gherkin_author,
 │   │                         #   tdd_craftsman, judge, mutation_tester
-│   └── settings.json         # Hooks that automate verification
+│   └── plugins/
+│       └── harness-verify.js # Runs the suite after src/tests edits; init.sh on idle
+├── .claude/                  # Claude Code mirror of the above (agents + hooks)
 ├── src/                      # Your application code (starts empty)
 └── tests/                    # Your tests (starts empty)
 ```

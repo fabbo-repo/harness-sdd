@@ -1,5 +1,10 @@
 # Instructions for Claude
 
+> **This file only applies in Claude Code.** opencode loads `AGENTS.md`
+> instead (it ignores `CLAUDE.md` whenever `AGENTS.md` exists), so the same
+> role mandate lives in `AGENTS.md` §0 and the agent definitions in
+> `.opencode/agents/`. If you change the rules here, change them there too.
+
 > This file is loaded automatically at the start of each session.
 > The flow is Robert C. Martin's
 > (conversation → Gherkin → TDD → review → mutation). See `docs/workflow.md`.
