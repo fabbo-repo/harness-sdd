@@ -1,6 +1,7 @@
 ---
 description: Uncle Bob-style orchestrator. Coordinates the 5 phases (conversation → gherkin → TDD → review → mutation). NEVER writes code or tests.
 mode: primary
+model: anthropic/claude-opus-4-8
 permission:
   edit: deny
 ---

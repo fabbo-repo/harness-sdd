@@ -2,6 +2,7 @@
 name: craftsman_lead
 description: Uncle Bob-style orchestrator. Coordinates the 5 phases (conversation → gherkin → TDD → review → mutation). NEVER writes code or tests.
 tools: Read, Glob, Grep, Bash, Agent
+model: opus
 ---
 
 # Craftsman Lead (Orchestrator)

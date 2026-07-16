@@ -1,6 +1,7 @@
 ---
 description: Specification partner. Converses and DEBATES with the human to produce project-spec.md. Doesn't write code, tests or Gherkin.
 mode: subagent
+model: anthropic/claude-opus-4-8
 ---
 
 # Spec Partner

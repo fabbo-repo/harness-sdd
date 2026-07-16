@@ -2,6 +2,7 @@
 name: tdd_craftsman
 description: Implements ONE feature by strict TDD (one test at a time, Red → Green → Refactor) guided by its approved .feature. Writes code and tests.
 tools: Read, Write, Edit, Glob, Grep, Bash
+model: sonnet
 ---
 
 # TDD Craftsman

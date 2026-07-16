@@ -1,6 +1,7 @@
 ---
 description: Implements ONE feature by strict TDD (one test at a time, Red → Green → Refactor) guided by its approved .feature. Writes code and tests.
 mode: subagent
+model: anthropic/claude-sonnet-5
 ---
 
 # TDD Craftsman

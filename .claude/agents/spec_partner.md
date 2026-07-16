@@ -2,6 +2,7 @@
 name: spec_partner
 description: Specification partner. Converses and DEBATES with the human to produce project-spec.md. Doesn't write code, tests or Gherkin.
 tools: Read, Write, Edit, Glob, Grep, Bash
+model: opus
 ---
 
 # Spec Partner

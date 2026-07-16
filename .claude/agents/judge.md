@@ -2,6 +2,7 @@
 name: judge
 description: Review is the whole game. Approves or rejects the tdd_craftsman's work against the .feature, docs/ and CHECKPOINTS.md. Doesn't edit code.
 tools: Read, Glob, Grep, Bash
+model: opus
 ---
 
 # Judge

@@ -1,6 +1,7 @@
 ---
 description: Review is the whole game. Approves or rejects the tdd_craftsman's work against the .feature, docs/ and CHECKPOINTS.md. Doesn't edit code.
 mode: subagent
+model: anthropic/claude-opus-4-8
 permission:
   edit: deny
 ---

@@ -2,6 +2,7 @@
 name: gherkin_author
 description: Distills project-spec.md into .feature files (Gherkin). The executable contract the human approves before TDD. Doesn't write code or tests.
 tools: Read, Write, Edit, Glob, Grep, Bash
+model: sonnet
 ---
 
 # Gherkin Author

@@ -1,6 +1,7 @@
 ---
 description: Validates that the tests bite. Runs tools/mutate.py over the feature's code and demands a mutation score above the threshold. Doesn't edit code.
 mode: subagent
+model: anthropic/claude-haiku-4-5
 permission:
   edit: deny
 ---

@@ -45,6 +45,32 @@ contract, **before** writing production code.
 Definitions in `.opencode/agents/` (mirrored in `.claude/agents/` for
 Claude Code users).
 
+### Model per agent
+
+Each agent pins the model that matches its responsibility: **Opus where there
+is judgment** (orchestrating, debating, approving/rejecting), **Sonnet where
+production is bounded by a contract**, **Haiku where the work is mechanical**.
+The `tdd_craftsman` burns the most tokens but its errors are caught by two
+nets behind it (judge + mutation), so it doesn't need the most expensive
+model; the `judge` is the worst place to cut costs — a weak judge lets bad
+work through and the whole pipeline loses its point.
+
+| Agent             | opencode (`model:`)          | Claude Code (`model:`) | Rationale                                          |
+|-------------------|------------------------------|------------------------|-----------------------------------------------------|
+| `craftsman_lead`  | `anthropic/claude-opus-4-8`  | `opus`                 | Few tokens, high-impact decisions (gates, verdicts) |
+| `spec_partner`    | `anthropic/claude-opus-4-8`  | `opus`                 | The pushback quality *is* the product               |
+| `gherkin_author`  | `anthropic/claude-sonnet-5`  | `sonnet`               | Structured spec → Gherkin, human gate after         |
+| `tdd_craftsman`   | `anthropic/claude-sonnet-5`  | `sonnet`               | Biggest token consumer; contract + 2 nets behind    |
+| `judge`           | `anthropic/claude-opus-4-8`  | `opus`                 | "Review is the whole game" — don't cheap out here   |
+| `mutation_tester` | `anthropic/claude-haiku-4-5` | `haiku`                | Mostly mechanical: run script, compare threshold    |
+
+opencode requires the full provider-prefixed ID; Claude Code takes **aliases**
+(`opus`, `sonnet`, `haiku`) that track the current model without maintenance —
+when a new model generation ships, update the opencode IDs and the Claude
+Code side follows automatically. Per-agent models are the right granularity:
+each subagent is a separate context, so mixing tiers carries no prompt-cache
+penalty (unlike switching models mid-session).
+
 ## The insights behind each step
 
 | Step              | Idea from Uncle Bob's thread                                                   | Where it lives                   |

@@ -2,6 +2,7 @@
 name: mutation_tester
 description: Validates that the tests bite. Runs tools/mutate.py over the feature's code and demands a mutation score above the threshold. Doesn't edit code.
 tools: Read, Glob, Grep, Bash
+model: haiku
 ---
 
 # Mutation Tester
