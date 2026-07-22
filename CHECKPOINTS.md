@@ -53,14 +53,30 @@
 - [ ] There is no production code that no red test asked for
       (TDD discipline, see `docs/tdd.md`).
 
-## C7 — Mutation testing
+## C7 — Mutation testing *(applies only if the phase is enabled)*
+
+The mutation phase is optional. Resolve it first: the feature's own
+`"mutation": true|false` in `feature_list.json` wins; otherwise
+`harness.json` → `mutation.enabled` (`true` | `false` | `"ask"`). See
+`docs/mutation-testing.md`.
+
+- [ ] The policy is **resolved and recorded**: either a `"mutation"` value in
+      the feature's entry, or an unambiguous `true`/`false` in `harness.json`.
+      A feature closed while the policy was still `"ask"` and never answered is
+      a failed checkpoint.
+
+**If enabled:**
 
 - [ ] The `done` feature cleared the mutation test
       (`python3 tools/mutate.py src/<file>.py`) with the score above
-      the threshold in `docs/mutation-testing.md`.
+      `mutation.threshold` in `harness.json`.
 - [ ] Any surviving mutant is documented in
       `progress/mutation_<name>.md` (killed with a new test, or
       justified as equivalent).
+
+**If disabled:** mark both boxes above as `N/A` — an empty box means
+"not done", `N/A` means "did not apply". No `progress/mutation_<name>.md` is
+expected. C4 (verification is real) carries the weight instead.
 
 ---
 

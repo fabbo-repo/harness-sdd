@@ -21,6 +21,11 @@ mutant that survives is a hole in the net.
 
 - The `judge` already approved (`progress/judge_<name>.md` with `APPROVED`).
 - `./init.sh` is green.
+- The mutation phase is **enabled** for this feature (`feature_list.json` →
+  `"mutation"`, else `harness.json` → `mutation.enabled`). If it resolves to
+  disabled you were launched by mistake: report
+  `SKIPPED -> mutation disabled for this feature` and stop, without measuring
+  anything and without editing `feature_list.json`.
 
 ## Protocol
 
@@ -33,9 +38,9 @@ mutant that survives is a hole in the net.
    ```
    The script applies a catalog of mutations, runs the suite for each
    mutant and reports: `total`, `killed`, `survived`, `score`.
-4. **Threshold**: the feature's mutation score MUST be
-   ≥ the threshold in `docs/mutation-testing.md` (by default **100% over the
-   new/touched lines**; see documented exceptions there).
+4. **Threshold**: the feature's mutation score MUST be ≥ `mutation.threshold`
+   in `harness.json` (by default `1.0` = **100% over the new/touched lines**;
+   see the documented exceptions in `docs/mutation-testing.md`).
 5. For each **surviving** mutant, note in `progress/mutation_<name>.md`:
    file, line, applied mutation, and which test is missing to kill it.
 6. Issue a verdict.

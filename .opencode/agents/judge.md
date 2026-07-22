@@ -35,9 +35,13 @@ you point out what's wrong, you don't fix it.
 7. Walk `CHECKPOINTS.md`: mark `[x]`/`[ ]`.
 8. Issue a verdict.
 
-> The `mutation_tester` runs **after** your approval. You judge
-> design and scenario coverage; mutation measures whether the tests
-> really bite. They are distinct gates: both must pass.
+> The `mutation_tester` runs **after** your approval, **if** the mutation
+> phase is enabled for this feature (`feature_list.json` → `"mutation"`, else
+> `harness.json` → `mutation.enabled`). You judge design and scenario
+> coverage; mutation measures whether the tests really bite. They are distinct
+> gates. When mutation is off you are the **last** gate — checkpoint C7 is
+> `N/A`, and the weight of "do these tests actually assert anything?" falls on
+> your review. Judge accordingly.
 
 ## Verdict format
 

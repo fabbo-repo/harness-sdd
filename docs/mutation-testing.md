@@ -58,10 +58,48 @@ catalog to operators/keywords and functions small keeps the score meaningful.
 The harness *tooling* runs on Python 3.9+; the *project under test* can be any
 language.
 
+## The phase is optional (and this is where you decide)
+
+Mutation testing is the most expensive phase — it re-runs the whole suite once
+per mutant. It is therefore **opt-out**, configured in `harness.json`:
+
+```json
+"mutation": { "enabled": "ask", "threshold": 1.0 }
+```
+
+| `enabled` | Behavior                                                                  |
+|-----------|---------------------------------------------------------------------------|
+| `true`    | The phase always runs. No feature closes without clearing the threshold.   |
+| `false`   | The phase never runs. A feature closes with the `judge`'s approval alone.  |
+| `"ask"`   | The `craftsman_lead` asks the human, once per feature, at the Gherkin approval gate. |
+
+### Resolution order (the only rule that matters)
+
+1. The feature's own entry in `feature_list.json` has `"mutation": true` or
+   `"mutation": false` → **that wins**.
+2. Otherwise `harness.json` → `mutation.enabled` is `true` or `false` → that.
+3. Otherwise (`"ask"`) → the `craftsman_lead` asks the human at the approval
+   gate and **writes the answer** into that feature's entry, so the question is
+   asked once and survives a lost session.
+
+If the block is missing from `harness.json`, the phase is treated as enabled.
+
+### What "disabled" changes
+
+- The `craftsman_lead` does **not** launch the `mutation_tester`.
+- The feature closes on the `judge`'s approval alone; everything before it
+  (spec conversation, Gherkin gate, strict TDD, review) is **unchanged**.
+- `progress/mutation_<name>.md` is not written, and checkpoint C7 in
+  `CHECKPOINTS.md` is marked `N/A` instead of left empty.
+
+Disabling trades away the proof that the tests bite. It's a legitimate trade
+for a spike or a throwaway prototype; it is not one for code you intend to keep.
+
 ## The threshold
 
-- By default, the feature requires **100% killed mutants over the new or
-  touched lines** of that feature.
+- By default (`mutation.threshold: 1.0` in `harness.json`), the feature
+  requires **100% killed mutants over the new or touched lines** of that
+  feature.
 - For pre-existing code not touched by the feature, no threshold is required
   (it is measured, not blocked).
 - An **equivalent** mutant (doesn't change the observable behavior; e.g.

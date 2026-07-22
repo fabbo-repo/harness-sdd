@@ -50,10 +50,13 @@ REFACTOR → clean up with the green bar: names, duplication, short functions
 4. **Traceability**: each `@s` scenario must be covered by at least
    one concrete test. Write the `@s → test` map in `progress/tdd_<name>.md`.
 5. Run `./init.sh`. Green end to end.
-6. **Don't mark `done` yourself.** Wait for the `judge` and the `mutation_tester`.
-7. If the `craftsman_lead` reinvokes you with the approved verdict and the
-   mutation cleared: change the status to `done`. The permanent record is the
-   git commit plus your `progress/tdd_<name>.md` report.
+6. **Don't mark `done` yourself.** Wait for the `judge`, and for the
+   `mutation_tester` when the mutation phase is enabled for this feature
+   (`feature_list.json` → `"mutation"`, else `harness.json` →
+   `mutation.enabled`; see `docs/mutation-testing.md`).
+7. If the `craftsman_lead` reinvokes you with the approved verdict — plus the
+   mutation cleared, when that phase applies: change the status to `done`. The
+   permanent record is the git commit plus your `progress/tdd_<name>.md` report.
 
 ## Hard rules
 

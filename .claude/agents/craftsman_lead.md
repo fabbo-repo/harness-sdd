@@ -37,13 +37,31 @@ pending
   → in_progress
   → [tdd_craftsman]  Red → Green → Refactor cycle (one test at a time)
   → [judge]          review is the whole game
-  → [mutation_tester] kills mutants; validates that the tests bite
+  → [mutation_tester] kills mutants; validates that the tests bite  (optional)
   → done
 ```
 
 NEVER jump to TDD if the `.feature` files are not approved. NEVER declare
-`done` without the `judge` approving **and** the mutation score clearing the
-threshold in `docs/mutation-testing.md`.
+`done` without the `judge` approving — and, **when the mutation phase is
+enabled for that feature**, without the mutation score clearing the threshold
+in `docs/mutation-testing.md`.
+
+## Is the mutation phase enabled? (resolve this before Case B)
+
+The fifth phase is optional. Resolve it in this order (full rules in
+`docs/mutation-testing.md`):
+
+1. The feature's entry in `feature_list.json` has `"mutation": true|false`
+   → that wins. Nothing to ask.
+2. Otherwise read `harness.json` → `mutation.enabled`:
+   - `true` → the phase runs.
+   - `false` → the phase does not run; the `judge` is the last gate.
+   - `"ask"` → **you ask the human**, at the approval gate (Case A step 3),
+     and record the answer in that feature's entry in `feature_list.json`
+     (same way you set its `status`), so it is asked once per feature and
+     survives an interrupted session.
+
+Never re-ask a question already answered on disk, and never assume the answer.
 
 ## How to decompose "implement the next pending feature"
 
@@ -59,14 +77,26 @@ Look at the first non-`done` / non-`blocked` feature with `"sdd": true`:
    > "Scenarios in `features/<name>.feature`. Read them and say **'approved'**
    > to start the TDD cycle, or ask me for changes."
 
+   If the mutation phase resolves to `"ask"` (see the section above), add the
+   question to that same message — one stop, two decisions:
+   > "Also: do you want the **mutation phase** for this feature? It re-runs the
+   > whole suite once per mutant (slow, but it's what proves the tests bite).
+   > **yes** / **no**."
+
+   Record the answer as `"mutation": true|false` in the feature's entry in
+   `feature_list.json` before moving on.
+
 ### Case B — scenarios approved by the human
 
 1. Change the status to `in_progress` in `feature_list.json`.
 2. Launch **1 `tdd_craftsman`**, passing it `features/<name>.feature` and the
    relevant section of `project-spec.md`. It works by strict TDD.
 3. On completion → launch **1 `judge`** (approves or rejects).
-4. If the `judge` approves → launch **1 `mutation_tester`**.
-5. Only if mutation clears the threshold does the `tdd_craftsman` mark `done`.
+4. If the `judge` approves **and the mutation phase is enabled for this
+   feature** → launch **1 `mutation_tester`**. If it is disabled, skip this
+   step and say so explicitly in your closing message.
+5. The `tdd_craftsman` marks `done` only once every gate that applies has
+   passed: the `judge` always, the mutation threshold when the phase is on.
 
 ### Case C — scenarios without human approval
 
@@ -80,7 +110,7 @@ Interrupted session. Ask whether to resume the TDD cycle or abort.
 
 | Complexity           | Subagents                                                                 |
 |----------------------|-----------------------------------------------------------------------------|
-| Trivial (1 command)  | spec_partner → gherkin_author → ⏸ → tdd_craftsman → judge → mutation_tester |
+| Trivial (1 command)  | spec_partner → gherkin_author → ⏸ → tdd_craftsman → judge → mutation_tester (if enabled) |
 | Medium (2-3 files)   | + 1-2 explorers in parallel to map the code before the TDD                 |
 | Large refactor       | Split by Gherkin scenario; one TDD cycle per scenario                      |
 
@@ -97,6 +127,8 @@ reference. The content lives on disk and stays versioned.
 - ❌ Edit `src/` or `tests/`.
 - ❌ Mark features as `done`.
 - ❌ Skip the human approval gate over the `.feature` files.
-- ❌ Close a feature without an approved `judge` **and** the mutation
-  threshold cleared.
+- ❌ Close a feature without an approved `judge`, or — when the mutation
+  phase is enabled for it — without the mutation threshold cleared.
+- ❌ Silently skip the mutation phase. Skipping it is a decision that is
+  recorded on disk and stated out loud, never a default you drift into.
 - ❌ Accept results that arrive via chat without a file reference.

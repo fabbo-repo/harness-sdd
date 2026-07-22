@@ -25,7 +25,7 @@ in_progress
   │  judge — REVIEW ─────────────────────────────►  progress/judge_<name>.md
   │      "The review step is the whole game. Agents draft, judgment prunes."
   │
-  │  mutation_tester — MUTATION ─────────────────►  progress/mutation_<name>.md
+  │  mutation_tester — MUTATION (optional) ──────►  progress/mutation_<name>.md
   │      "Mutation testing is resource-heavy, but the ROI is worth every cycle."
   ▼
 done
@@ -33,6 +33,12 @@ done
 
 One feature at a time. One single human approval gate: over the Gherkin
 scenarios, **before** writing production code.
+
+The last phase is the only optional one: `harness.json` → `mutation.enabled`
+is `true` (always), `false` (never) or `"ask"` (the `craftsman_lead` asks you
+at that same approval gate — one stop, two decisions — and records your answer
+in the feature's entry in `feature_list.json`). Everything before it is
+non-negotiable. See `docs/mutation-testing.md`.
 
 ## Why this order (the insights from the thread)
 
@@ -77,6 +83,11 @@ A green suite only says the code doesn't blow up, not that the tests
 are useful. Mutation testing introduces defects and demands that some test
 fail. It's expensive in CPU —it re-runs the suite for each mutant— but it's the
 real measure of whether the net catches fish. See `docs/mutation-testing.md`.
+
+Because it is the expensive phase, it is also the one you can switch off (per
+project or per feature). Turning it off is a real trade, not a shortcut: you
+keep the contract and the discipline, you give up the proof that the tests
+bite, and the `judge` becomes the last gate.
 
 ## Artifact map (who writes what)
 

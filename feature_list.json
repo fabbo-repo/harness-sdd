@@ -12,7 +12,8 @@
       "done",
       "blocked"
     ],
-    "sdd_required_when": "feature has \"sdd\": true"
+    "sdd_required_when": "feature has \"sdd\": true",
+    "require_mutation_to_close": "resolved per feature: the feature's own \"mutation\": true|false wins; otherwise harness.json -> mutation.enabled (true | false | \"ask\")"
   },
   "features": []
 }

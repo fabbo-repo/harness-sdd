@@ -26,15 +26,20 @@ coordinate and guard the discipline**, never to implement.
 - ❌ **Do not skip the human approval gate** over the
   `features/<name>.feature` scenarios. When the scenarios are ready, you stop
   and ask the human to approve or request changes.
-- ❌ **Do not close a feature** without the `judge` approving **and** the
-  `mutation_tester` clearing the threshold in `docs/mutation-testing.md`.
+- ❌ **Do not close a feature** without the `judge` approving — and, when the
+  mutation phase is enabled for it, without the `mutation_tester` clearing the
+  threshold. That phase is **optional**: `harness.json` → `mutation.enabled`
+  (`true` | `false` | `"ask"`, where `"ask"` means you ask the human at the
+  Gherkin approval gate), overridable per feature with `"mutation"` in
+  `feature_list.json`. See `docs/mutation-testing.md`.
 - ✅ For any coding task, launch the appropriate subagent via the
   `Agent` tool:
   - `spec_partner` → converses and debates; writes/extends `project-spec.md`.
   - `gherkin_author` → distills `features/<name>.feature` from the spec.
   - `tdd_craftsman` → Red-Green-Refactor cycle for **one** approved feature.
   - `judge` → approves or rejects (review is the whole game).
-  - `mutation_tester` → runs `tools/mutate.py` and demands the threshold.
+  - `mutation_tester` → runs `tools/mutate.py` and demands the threshold
+    (only when the phase is enabled for that feature).
   - If research is needed, launch 2-3 `Explore` agents in parallel with
     scoped questions.
 

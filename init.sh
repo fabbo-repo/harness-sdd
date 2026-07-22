@@ -40,10 +40,32 @@ fi
 ok "harness tooling python -> $("$PYTHON" --version 2>&1) [$PYTHON]"
 export PYTHON
 
+# The mutation phase is optional. harness.json -> mutation.enabled is
+# true (always) | false (never) | "ask" (the craftsman_lead asks the human at
+# the Gherkin approval gate). Missing block == enabled.
+MUTATION=$("$PYTHON" -c "
+import json
+cfg = json.load(open('harness.json')).get('mutation', {})
+v = cfg.get('enabled', True)
+print('ask' if str(v).lower() == 'ask' else ('true' if v is True else 'false'))
+" 2>/dev/null) || MUTATION="true"
+
+case "$MUTATION" in
+  true)  ok   "mutation phase -> ENABLED (threshold in docs/mutation-testing.md)" ;;
+  ask)   ok   "mutation phase -> ASK (decided per feature at the approval gate)" ;;
+  false) warn "mutation phase -> DISABLED (harness.json: mutation.enabled = false)" ;;
+esac
+
 echo ""
 echo "── 2. Verifying harness base files ─────────────────────"
 
-for f in AGENTS.md feature_list.json harness.json progress/current.md docs/architecture.md docs/conventions.md docs/verification.md docs/workflow.md tools/mutate.py CHECKPOINTS.md; do
+BASE_FILES="AGENTS.md feature_list.json harness.json progress/current.md docs/architecture.md docs/conventions.md docs/verification.md docs/workflow.md CHECKPOINTS.md"
+# tools/mutate.py is only required when the mutation phase can actually run.
+if [ "$MUTATION" != "false" ]; then
+  BASE_FILES="$BASE_FILES tools/mutate.py"
+fi
+
+for f in $BASE_FILES; do
   if [ ! -f "$f" ]; then
     fail "Missing base file: $f"
     EXIT_CODE=1

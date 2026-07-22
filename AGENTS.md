@@ -23,8 +23,11 @@ you **decompose, coordinate and guard the discipline**, never implement.
 - ❌ Do not mark features as `done` in `feature_list.json`.
 - ❌ Do not skip the spec conversation, the Gherkin distillation, or the
   human approval gate over `features/<name>.feature`.
-- ❌ Do not close a feature without the `judge` approving **and** the
-  `mutation_tester` clearing the threshold in `docs/mutation-testing.md`.
+- ❌ Do not close a feature without the `judge` approving — and, when the
+  mutation phase is enabled for it, without the `mutation_tester` clearing the
+  threshold. The phase is **optional**: `harness.json` → `mutation.enabled`
+  (`true` | `false` | `"ask"`), overridable per feature with `"mutation"` in
+  `feature_list.json`. See `docs/mutation-testing.md`.
 - ✅ For any coding task, launch the appropriate subagent with the task tool:
   `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`,
   `mutation_tester` (definitions in `.opencode/agents/`).
@@ -49,7 +52,7 @@ If you ARE one of the specialized agents, your own definition in
 | File / folder                | What it contains                                                            | When to read it |
 |------------------------------|-----------------------------------------------------------------------------|---------------|
 | `feature_list.json`          | Task list with status (`pending` / `spec_ready` / `in_progress` / `done` / `blocked`) | Always, at the start |
-| `harness.json`               | Language config: `test_command`, `source_dir`, `line_comment`               | To run tests or mutation |
+| `harness.json`               | Language config: `test_command`, `source_dir`, `line_comment`, `mutation`   | To run tests, or to know whether the mutation phase applies |
 | `progress/current.md`        | State of the current session                                               | Always, at the start |
 | `project-spec.md`            | Conversed spec: purpose, contract and decisions per feature                 | Before distilling Gherkin or implementing |
 | `features/<name>.feature`    | Gherkin scenarios (the executable contract the human approves)              | Before starting the TDD cycle |
@@ -69,8 +72,9 @@ If you ARE one of the specialized agents, your own definition in
 ## 3. Hard rules (non-negotiable)
 
 - **One feature at a time.** Don't mix changes from several tasks in the same session.
-- **Don't declare a task `done` without green tests AND the mutation threshold
-  cleared.** Run `./init.sh` and the mutation test.
+- **Don't declare a task `done` without green tests** — plus the mutation
+  threshold cleared when that phase is enabled for the feature. Run `./init.sh`
+  (it prints the mutation policy) and, if it applies, the mutation test.
 - **Don't skip the spec conversation or the Gherkin distillation.** Every
   feature with `"sdd": true` goes through `spec_partner` and `gherkin_author`.
 - **Don't skip the human approval gate** over the `.feature` files. The
@@ -91,7 +95,7 @@ pending
   → in_progress
   → [tdd_craftsman]  Red → Green → Refactor (one test at a time)
   → [judge]          review (the whole game)
-  → [mutation_tester] kills mutants; validates that the tests bite
+  → [mutation_tester] kills mutants; validates that the tests bite  (optional)
   → done
 ```
 
@@ -102,7 +106,9 @@ pending
 5. Approved → status `in_progress` and launches `tdd_craftsman`.
 6. The `tdd_craftsman` walks each `@s` scenario with Red-Green-Refactor cycles.
 7. The `judge` reviews coverage, TDD discipline and quality; approves or rejects.
-8. The `mutation_tester` runs `tools/mutate.py`; demands the threshold.
+8. **If the mutation phase is enabled** for the feature, the `mutation_tester`
+   runs `tools/mutate.py` and demands the threshold. If it is disabled, the
+   `judge` is the last gate and this step is skipped out loud, never silently.
 9. If everything passes, the `tdd_craftsman` marks `done`. The permanent record
    of the session is the git commit (`git log`) plus the `progress/<phase>_<name>.md`
    reports.
@@ -112,7 +118,8 @@ pending
 Before finishing:
 
 1. Run `./init.sh` — all green.
-2. Run the mutation test over what you touched — clears the threshold.
+2. If the mutation phase is enabled, run the mutation test over what you
+   touched — clears the threshold.
 3. If the task is finished: set `status: "done"` in `feature_list.json`.
 4. Empty `progress/current.md`, leaving only the template. The durable record of
    the session lives in the git commit and the `progress/<phase>_<name>.md` reports.

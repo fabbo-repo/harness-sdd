@@ -3,5 +3,10 @@
   "language": "python",
   "test_command": "python3 -m unittest discover -s tests -q",
   "source_dir": "src",
-  "line_comment": "#"
+  "line_comment": "#",
+  "mutation": {
+    "$comment": "Policy for the mutation phase. enabled: true = always run it; false = never run it (the feature closes with the judge's approval alone); \"ask\" = the craftsman_lead asks the human at the Gherkin approval gate and records the answer in that feature's entry in feature_list.json. A feature entry with its own \"mutation\": true|false always wins over this. threshold = minimum killed/total required over the new or touched lines.",
+    "enabled": "ask",
+    "threshold": 1.0
+  }
 }

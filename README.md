@@ -24,7 +24,7 @@ pending
   → in_progress
   → [tdd_craftsman]   RED → GREEN → REFACTOR  → src/ + tests/
   → [judge]           REVIEW ("the whole game")
-  → [mutation_tester] MUTATION (validates that the tests bite)
+  → [mutation_tester] MUTATION (validates that the tests bite)   ← optional
   → done
 ```
 
@@ -40,7 +40,7 @@ contract, **before** writing production code.
 | `gherkin_author`  | Distills the spec into `.feature` scenarios.                        | `features/<name>.feature`            |
 | `tdd_craftsman`   | Strict TDD, one test at a time (the Three Laws of TDD).             | `src/`, `tests/`, `progress/tdd_*`   |
 | `judge`           | Review is the game: approves or **prunes**. Doesn't edit code.      | `progress/judge_*`                   |
-| `mutation_tester` | Measures whether the tests **bite**. Doesn't edit code.            | `progress/mutation_*`                |
+| `mutation_tester` | Measures whether the tests **bite**. Doesn't edit code. Optional phase — see `harness.json` → `mutation`. | `progress/mutation_*` |
 
 Definitions in `.opencode/agents/` (mirrored in `.claude/agents/` for
 Claude Code users).
@@ -95,7 +95,8 @@ and that lives in a single config file, **`harness.json`**:
   "language": "python",
   "test_command": "python3 -m unittest discover -s tests -q",
   "source_dir": "src",
-  "line_comment": "#"
+  "line_comment": "#",
+  "mutation": { "enabled": "ask", "threshold": 1.0 }
 }
 ```
 
@@ -139,9 +140,16 @@ What happens:
   **stops and asks you to approve** the scenarios.
 - **Phase 2 — Code.** After your "approved", the lead moves to `in_progress`
   and launches `tdd_craftsman` (Red-Green-Refactor, one test at a time), then
-  `judge` (review) and then `mutation_tester`
-  (`python3 tools/mutate.py src/<module>.py`). Only if mutation clears the
-  threshold does the feature move to `done`.
+  `judge` (review) and then — **if the mutation phase is on** —
+  `mutation_tester` (`python3 tools/mutate.py src/<module>.py`). The feature
+  moves to `done` once every gate that applies has passed.
+
+> **The mutation phase is optional.** `harness.json` → `mutation.enabled`
+> takes `true` (always run), `false` (never run — the `judge` is the last
+> gate) or `"ask"` (the default: the lead asks you at the approval gate above,
+> and records your answer as `"mutation": true|false` in that feature's entry,
+> so you are asked once per feature). A feature's own value always wins over
+> the global one. Details in `docs/mutation-testing.md`.
 
 Open `features/`, `project-spec.md` and `progress/` in your editor while the
 agent works: each report appears as soon as the subagent finishes. That is the
@@ -167,6 +175,11 @@ anti-broken-telephone rule — the content lives on disk, not in chat.
 
 `"sdd": true` sends the feature through the full pipeline (spec → Gherkin →
 TDD → review → mutation). `name` must match the `features/<name>.feature` file.
+
+Optional field: `"mutation": true | false` overrides `harness.json` →
+`mutation.enabled` for this feature alone. Leave it out to inherit the global
+policy (and, under `"ask"`, to be asked at the approval gate — the lead writes
+your answer back into this entry).
 
 ## Structure
 
